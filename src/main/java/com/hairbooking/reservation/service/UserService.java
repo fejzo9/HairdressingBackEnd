@@ -2,6 +2,7 @@ package com.hairbooking.reservation.service;
 
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -55,10 +56,12 @@ public class UserService {
         }
 
         // Provjera formata datuma
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+        DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         try {
             String formattedDate = user.getBirthDate().format(formatter);
-            if (!formattedDate.matches("^\\d{2}-\\d{2}-\\d{4}$")) {
+            String formattedDate2 = user.getBirthDate().format(formatter2);
+            if (!formattedDate.matches("^\\d{2}/\\d{2}/\\d{4}$") || !formattedDate2.matches("^\\d{2}.\\d{2}.\\d{4}$") ) {
                 throw new IllegalArgumentException("Invalid date format! Use dd-MM-yyyy.");
             }
         } catch (DateTimeParseException e) {
@@ -66,7 +69,7 @@ public class UserService {
         }
 
         //Provjera da li korisnik sa istim e-mailom ili korisničkim imenom već postoji
-        if (userRepository.findByUsername(user.getUsername()) != null) {
+        if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Username already exists!");
         }
         if (userRepository.findAll().stream().anyMatch(existingUser ->
@@ -82,6 +85,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public User updateUser(Long id, User updatedUser) {
         User user = userRepository.findById(id).orElse(null);
 
@@ -139,6 +143,7 @@ public class UserService {
         return null;
     }
 
+    @Transactional
     public void deleteUser(Long id) {
         userRepository.deleteById(id);
     }
