@@ -5,6 +5,8 @@ import com.hairbooking.reservation.service.AdminService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/admins")
 public class AdminController {
@@ -28,5 +30,12 @@ public class AdminController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(admin);
+    }
+
+    // GET endpoint za dohvaćanje svih admina
+    @GetMapping
+    public ResponseEntity<List<Admin>> getAllAdmins() {
+        List<Admin> admins = adminService.getAllAdmins();
+        return ResponseEntity.ok(admins);
     }
 }
