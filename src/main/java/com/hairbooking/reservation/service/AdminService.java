@@ -5,6 +5,8 @@ import com.hairbooking.reservation.repository.AdminRepository;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AdminService {
 
@@ -23,5 +25,9 @@ public class AdminService {
 
     public Admin findByUsername(String username) {
         return adminRepository.findByUsername(username);
+    }
+
+    public List<Admin> getAllAdmins() {
+        return adminRepository.findAll();
     }
 }
