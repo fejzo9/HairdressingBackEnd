@@ -30,4 +30,21 @@ public class AdminService {
     public List<Admin> getAllAdmins() {
         return adminRepository.findAll();
     }
+
+    public Admin updateAdmin(Long id, Admin updatedAdmin) {
+        Admin existingAdmin = adminRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + id));
+
+        // Ažuriraj samo potrebna polja
+        if (updatedAdmin.getUsername() != null) existingAdmin.setUsername(updatedAdmin.getUsername());
+        if (updatedAdmin.getEmail() != null) existingAdmin.setEmail(updatedAdmin.getEmail());
+        if (updatedAdmin.getPassword() != null) existingAdmin.setPassword(updatedAdmin.getPassword()); // Lozinka treba biti enkodirana
+        return adminRepository.save(existingAdmin);
+    }
+
+    public void deleteAdmin(Long id){
+        Admin admin = adminRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Admin not found with ID: " + id));
+        adminRepository.delete(admin);
+    }
 }
