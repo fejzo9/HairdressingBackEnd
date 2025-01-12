@@ -18,8 +18,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable) // Privremeno isključivanje CSRF zaštite za testiranje
                     .cors(Customizer.withDefaults())
                     .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/registration/**", "/users/**", "/login/**", "/admins/**").permitAll() // Omogućiti pristup za POST na /users i svim podputanjama
-                      //  .requestMatchers("/admins/**").hasRole("ADMIN")
+                        .requestMatchers("/registration/**", "/users/**", "/login/**").permitAll() // Omogućiti pristup za POST na /users i svim podputanjama
+                        .requestMatchers("/admins/**").hasRole("ADMIN")
                         .anyRequest().authenticated() // Svi ostali zahtjevi zahtijevaju autentifikaciju
                 ).cors(Customizer.withDefaults());
         return http.build();
