@@ -38,4 +38,16 @@ public class AdminController {
         List<Admin> admins = adminService.getAllAdmins();
         return ResponseEntity.ok(admins);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Admin> updateAdmin(@PathVariable Long id, @RequestBody Admin updatedAdmin) {
+        Admin admin = adminService.updateAdmin(id, updatedAdmin);
+        return ResponseEntity.ok(admin);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteAdmin(@PathVariable Long id) {
+        adminService.deleteAdmin(id);
+        return ResponseEntity.ok("Admin with ID " + id + " was deleted.");
+    }
 }
