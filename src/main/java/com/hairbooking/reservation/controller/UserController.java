@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.controller;
 
+import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.UserService;
 import org.springframework.http.ResponseEntity;
@@ -49,5 +50,11 @@ public class UserController {
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Dohvati korisnike po ulozi
+    @GetMapping("/role/{role}")
+    public ResponseEntity<List<User>> getUsersByRole(@PathVariable Role role) {
+        return ResponseEntity.ok(userService.getUsersByRole(role));
     }
 }
