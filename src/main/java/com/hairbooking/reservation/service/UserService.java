@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.service;
 
+import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -82,6 +83,8 @@ public class UserService {
             throw new IllegalArgumentException("Password must be at least 8 characters long!");
         }
 
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
         return userRepository.save(user);
     }
 
@@ -115,7 +118,9 @@ public class UserService {
                 if (updatedUser.getPassword().length() < 8) {
                     throw new IllegalArgumentException("Password must be at least 8 characters long!");
                 }
-                user.setPassword(updatedUser.getPassword());
+
+                user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+
             }
 
             if (updatedUser.getPhoneNumber() != null && user.getPhoneNumber().matches("^\\+387(6\\d|3\\d)\\d{6,7}$")){
@@ -137,6 +142,8 @@ public class UserService {
                     throw new IllegalArgumentException("Invalid date format! Use dd-MM-yyyy.");
                 }
             }
+
+            if (updatedUser.getRole() != null) user.setRole(updatedUser.getRole());
 
             return userRepository.save(user);
         }
@@ -162,5 +169,9 @@ public class UserService {
     // Verifikacija lozinke
     public boolean verifyPassword(User user, String rawPassword) {
         return passwordEncoder.matches(rawPassword, user.getPassword());
+    }
+
+    public List<User> getUsersByRole(Role role) {
+        return userRepository.findAllByRole(role);
     }
 }
