@@ -55,6 +55,13 @@ public class User {
         this.setPassword(password);
     }
 
+    public User(String username, String password, String email, Role role){
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.role = role;
+    }
+
     public User(String firstName, String lastName, String email, String username, String password) {
         this.firstName = firstName;
         this.lastName = lastName;
@@ -72,6 +79,18 @@ public class User {
         this.gender = gender;
         this.phoneNumber = phoneNumber;
         this.birthDate = birthDate;
+    }
+
+    public User(String firstName, String lastName, String email, String username, String password, String gender, String phoneNumber, LocalDate birthDate, Role role) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.username = username;
+        this.setPassword(password);
+        this.gender = gender;
+        this.phoneNumber = phoneNumber;
+        this.birthDate = birthDate;
+        this.role = role;
     }
 
     // Getters and Setters
@@ -119,10 +138,7 @@ public class User {
         return password;
     }
 
-    public void setPassword(String password) {
-        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-        this.password = encoder.encode(password);
-    }
+    public void setPassword(String password) { this.password = password; }
 
     public String getGender() {
         return gender;
@@ -147,4 +163,8 @@ public class User {
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
     }
+
+    public Role getRole() { return role; }
+
+    public void setRole(Role role) { this.role = role; }
 }
