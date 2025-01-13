@@ -25,7 +25,7 @@ public class AdminController {
 
     @GetMapping("/{username}")
     public ResponseEntity<Admin> getAdminByUsername(@PathVariable String username) {
-        Admin admin = adminService.findByUsername(username);
+        Admin admin = adminService.findByUsernameOrEmail(username);
         if (admin == null) {
             return ResponseEntity.notFound().build();
         }
