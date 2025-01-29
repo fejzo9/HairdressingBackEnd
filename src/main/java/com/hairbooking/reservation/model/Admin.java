@@ -33,7 +33,6 @@ public class Admin {
         this.username = username;
         this.password = password;
         this.email = email;
-
     }
 
     // Getters and Setters
@@ -67,5 +66,9 @@ public class Admin {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Role getRole() {
+        return role;
     }
 }
