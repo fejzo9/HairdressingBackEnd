@@ -83,6 +83,8 @@ public class UserService {
             throw new IllegalArgumentException("Password must be at least 8 characters long!");
         }
 
+        user.setRole(Role.USER);
+
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         return userRepository.save(user);
@@ -143,7 +145,9 @@ public class UserService {
                 }
             }
 
-            if (updatedUser.getRole() != null) user.setRole(updatedUser.getRole());
+            if (updatedUser.getRole() != null) {
+                user.setRole(updatedUser.getRole());
+             }
 
             return userRepository.save(user);
         }
