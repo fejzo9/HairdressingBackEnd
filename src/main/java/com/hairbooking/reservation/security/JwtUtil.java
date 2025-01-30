@@ -28,7 +28,7 @@ public class JwtUtil {
     public String generateToken(String username, String role) {
         return Jwts.builder()
                 .subject(username)  // Postavlja korisničko ime
-                .claim("role", role) // Postavlja korisničku ulogu
+                .claim("role", "ROLE_" + role) // Postavlja korisničku ulogu
                 .issuedAt(new Date()) // Vrijeme izdavanja tokena
                 .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 sati važenja
                 .signWith(getSignKey()) // Potpisivanje novim metodama
