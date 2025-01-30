@@ -6,11 +6,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
+
 /*
  * provjerava JWT token u svakom HTTP zahtjevu i autentifikuje korisnika.
  */
@@ -42,7 +46,12 @@ public class JwtFilter extends OncePerRequestFilter {
         // 3️⃣ Ako korisnik nije autentifikovan i token je validan, dopusti pristup
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             if (jwtUtil.validateToken(token, username)) {
-                // Token is valid, proceed
+                String role = jwtUtil.extractRole(token);
+                UsernamePasswordAuthenticationToken authToken =
+                        new UsernamePasswordAuthenticationToken(username, null,
+                                List.of(new SimpleGrantedAuthority(role))); // ✅ Postavlja ulogu korisnika
+
+                SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 
