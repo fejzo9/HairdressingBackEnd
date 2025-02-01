@@ -41,6 +41,8 @@ public class AdminService {
         if (updatedAdmin.getUsername() != null) existingAdmin.setUsername(updatedAdmin.getUsername());
         if (updatedAdmin.getEmail() != null) existingAdmin.setEmail(updatedAdmin.getEmail());
         if (updatedAdmin.getPassword() != null) existingAdmin.setPassword(updatedAdmin.getPassword()); // Lozinka treba biti enkodirana
+        if (updatedAdmin.getRole() != null) existingAdmin.setRole(updatedAdmin.getRole());
+
         return adminRepository.save(existingAdmin);
     }
 
