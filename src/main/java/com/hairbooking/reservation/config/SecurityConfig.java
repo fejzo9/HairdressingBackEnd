@@ -36,10 +36,10 @@ public class SecurityConfig {
                             .requestMatchers("/registration/**", "/login/**").permitAll()
 
                             // 👤 Endpointi dostupni samo korisnicima sa ulogom USER
-                            .requestMatchers("/users/**").hasRole("ADMIN")
+                            .requestMatchers("/users/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
 
-                            // 🏛️ Endpointi dostupni samo ADMINIMA
-                            .requestMatchers("/admins/**").hasRole("ADMIN")
+                            // 🏛️ Endpointi dostupni samo SUPER ADMINIMA
+                            .requestMatchers("/admins/**").hasRole("SUPER_ADMIN")
 
                             // ✂️ Endpointi dostupni samo FRIZERIMA
                             .requestMatchers("/hairdressers/**").hasRole("HAIRDRESSER")
