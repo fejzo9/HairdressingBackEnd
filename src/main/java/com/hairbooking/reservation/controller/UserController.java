@@ -21,14 +21,14 @@ public class UserController {
 
     // 🔐 Omogućava samo ADMINIMA da vide sve korisnike
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
 
     // 🔐 Omogućava ADMINIMA i vlasnicima naloga da vide korisnika po ID-u
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
         if (user != null) {
@@ -45,7 +45,7 @@ public class UserController {
 
     // 🔐 Omogućava samo ADMINIMA da mijenjaju korisnike
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
         User user = userService.updateUser(id, updatedUser);
         if (user != null) {
@@ -56,7 +56,7 @@ public class UserController {
 
     // 🔐 Omogućava samo ADMINIMA da brišu korisnike
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
@@ -64,7 +64,7 @@ public class UserController {
 
     // Dohvati korisnike po ulozi
     @GetMapping("/role/{role}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<List<User>> getUsersByRole(@PathVariable Role role) {
         return ResponseEntity.ok(userService.getUsersByRole(role));
     }
