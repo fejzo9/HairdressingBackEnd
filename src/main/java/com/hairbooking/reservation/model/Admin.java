@@ -9,6 +9,7 @@ public class Admin {
     // Fields
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "admin_id")
     private Long id;
 
     @Column(nullable = false, unique = true)
