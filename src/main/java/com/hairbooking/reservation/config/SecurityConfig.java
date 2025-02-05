@@ -33,7 +33,7 @@ public class SecurityConfig {
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT - Bez sesija
                     .authorizeHttpRequests(auth -> auth
                             // 🔓 Endpointi dostupni svima (registracija i login)
-                            .requestMatchers("/registration/**", "/login/**").permitAll()
+                            .requestMatchers("/registration/**", "/login/**", "/salons/**").permitAll()
 
                             // 👤 Endpointi dostupni samo korisnicima sa ulogom USER
                             .requestMatchers("/users/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
