@@ -1,5 +1,7 @@
 package com.hairbooking.reservation.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -28,6 +30,9 @@ public class Salon {
     private String email;
 
     @OneToMany
+    @JoinColumn(name = "salon_id")
+    //@JsonIgnore // Ignoriši zaposlenike u JSON odgovoru
+    //@JsonManagedReference // Ako želimo vidjeti podatke o zaposlenima, ali spriječiti rekurziju
     private List<User> employees;
 
     // Constructors
@@ -57,6 +62,13 @@ public class Salon {
 
     public Salon(User owner, String name, String address, String phoneNumber, String email) {
         this.owner = owner;
+        this.name = name;
+        this.address = address;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+    }
+
+    public Salon(String name, String address, String phoneNumber, String email){
         this.name = name;
         this.address = address;
         this.phoneNumber = phoneNumber;
