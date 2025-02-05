@@ -3,6 +3,7 @@ package com.hairbooking.reservation.config;
 import com.hairbooking.reservation.security.JwtFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -33,7 +34,7 @@ public class SecurityConfig {
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT - Bez sesija
                     .authorizeHttpRequests(auth -> auth
                             // 🔓 Endpointi dostupni svima (registracija i login)
-                            .requestMatchers("/registration/**", "/login/**", "/salons/**").permitAll()
+                            .requestMatchers("/registration/**", "/login/**").permitAll()
 
                             // 👤 Endpointi dostupni samo korisnicima sa ulogom USER
                             .requestMatchers("/users/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
@@ -46,6 +47,12 @@ public class SecurityConfig {
 
                             // Endpointi dostupni samo VLASNICIMA salona
                             .requestMatchers("/owners/**").hasRole("OWNER")
+
+                            // Endpoint /salons i pristup metodama
+                            .requestMatchers(HttpMethod.GET, "/salons/**").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/salons/**").hasAnyRole( "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.PUT, "/salons/**").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/salons/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
 
                             // 🚫 Svi ostali zahtjevi zahtijevaju autentifikaciju
                             .anyRequest().authenticated()
