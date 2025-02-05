@@ -1,11 +1,15 @@
 package com.hairbooking.reservation.service;
 
+import com.hairbooking.reservation.dto.SalonDTO;
 import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.repository.SalonRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import com.hairbooking.reservation.model.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class SalonService {
@@ -16,8 +20,18 @@ public class SalonService {
         this.salonRepository = salonRepository;
     }
 
-    public List<Salon> getAllSalons() {
-        return salonRepository.findAll();
+    @Transactional
+    public List<SalonDTO> getAllSalons() {
+        return salonRepository.findAll().stream().map(salon ->
+                new SalonDTO(
+                        salon.getId(),
+                        salon.getName(),
+                        salon.getAddress(),
+                        salon.getPhoneNumber(),
+                        salon.getEmail(),
+                        salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList())
+                )
+        ).collect(Collectors.toList());
     }
 
     public Optional<Salon> getSalonById(Long id) {
