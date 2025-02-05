@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.controller;
 
+import com.hairbooking.reservation.dto.SalonDTO;
 import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.service.SalonService;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +21,7 @@ public class SalonController {
     }
 
     @GetMapping
-    public List<Salon> getAllSalons() {
+    public List<SalonDTO> getAllSalons() {
         return salonService.getAllSalons();
     }
 
