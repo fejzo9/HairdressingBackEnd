@@ -22,16 +22,26 @@ public class SalonService {
 
     @Transactional
     public List<SalonDTO> getAllSalons() {
-        return salonRepository.findAll().stream().map(salon ->
-                new SalonDTO(
+        return salonRepository.findAll().stream().map(salon -> {
+            User owner = salon.getOwner();
+               return new SalonDTO(
                         salon.getId(),
                         salon.getName(),
                         salon.getAddress(),
                         salon.getPhoneNumber(),
                         salon.getEmail(),
-                        salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList())
-                )
-        ).collect(Collectors.toList());
+                        salon.getEmployees() != null
+                                ? salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList())
+                                : List.of(), // Ako nema zaposlenih, vrati praznu listu
+                        owner != null ? owner.getId() : null, // ID vlasnika
+                        owner != null ? owner.getFirstName() : "N/A", // Ime vlasnika
+                        owner != null ? owner.getLastName() : "N/A", // Prezime vlasnika
+                        owner != null ? String.valueOf(owner.getBirthDate()) : "N/A", // Datum rođenja vlasnika
+                        owner != null ? owner.getEmail() : "N/A", // Email vlasnika
+                        owner != null ? owner.getPhoneNumber() : "N/A", // Broj telefona vlasnika
+                        owner != null ? owner.getUsername() : "N/A" // Username vlasnika
+                );
+    }).collect(Collectors.toList());
     }
 
     public Optional<Salon> getSalonById(Long id) {
