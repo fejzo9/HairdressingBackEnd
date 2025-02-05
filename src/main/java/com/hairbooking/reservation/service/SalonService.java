@@ -44,8 +44,13 @@ public class SalonService {
     }).collect(Collectors.toList());
     }
 
+    @Transactional
     public Optional<Salon> getSalonById(Long id) {
-        return salonRepository.findById(id);
+        Optional<Salon> salonOptional = salonRepository.findById(id);
+        salonOptional.ifPresent(salon -> {
+            salon.getEmployees().size(); // Prisilno učitavanje zaposlenih (Lazy Loading)
+        });
+        return salonOptional;
     }
 
     public Salon createSalon(Salon salon) {
