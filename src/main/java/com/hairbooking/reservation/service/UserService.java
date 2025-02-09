@@ -31,6 +31,10 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
+    public List<User> findUsersByIds(List<Long> ids) {
+        return userRepository.findAllById(ids);
+    }
+
     public User createUser(User user) {
 
         // Provjera da li su sva polja popunjena
