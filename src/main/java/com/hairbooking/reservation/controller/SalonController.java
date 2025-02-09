@@ -4,6 +4,7 @@ import com.hairbooking.reservation.dto.SalonDTO;
 import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.SalonService;
+import com.hairbooking.reservation.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +18,11 @@ import java.util.stream.Collectors;
 public class SalonController {
 
     private final SalonService salonService;
+    private final UserService userService;
 
-    public SalonController(SalonService salonService) {
+    public SalonController(SalonService salonService, UserService userService) {
         this.salonService = salonService;
+        this.userService = userService;
     }
 
     @GetMapping
@@ -74,6 +77,41 @@ public class SalonController {
         Salon updatedSalon = salonService.updateSalon(id, salon);
         return updatedSalon != null ? ResponseEntity.ok(updatedSalon) : ResponseEntity.notFound().build();
     }
+
+    @PutMapping("/{id}/employees")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<SalonDTO> updateSalonEmployees(@PathVariable Long id, @RequestBody List<Long> employeeIds) {
+        System.out.println("Dodavanje zaposlenika u salon ID: " + id);
+        Optional<Salon> salonOptional = salonService.getSalonById(id);
+
+        if (salonOptional.isPresent()) {
+            Salon salon = salonOptional.get();
+            List<User> employees = userService.findUsersByIds(employeeIds); // ✅ Dohvati korisnike po ID-ju
+            salon.setEmployees(employees);
+            salonService.saveSalon(salon); // ✅ Sačuvaj promjene u bazi
+
+            // ✅ Kreiraj DTO odgovor
+            SalonDTO salonDTO = new SalonDTO(
+                    salon.getId(),
+                    salon.getName(),
+                    salon.getAddress(),
+                    salon.getPhoneNumber(),
+                    salon.getEmail(),
+                    salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList()),
+                    salon.getOwner().getId(),
+                    salon.getOwner().getFirstName(),
+                    salon.getOwner().getLastName(),
+                    String.valueOf(salon.getOwner().getBirthDate()),
+                    salon.getOwner().getEmail(),
+                    salon.getOwner().getPhoneNumber(),
+                    salon.getOwner().getUsername()
+            );
+
+            return ResponseEntity.ok(salonDTO);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
