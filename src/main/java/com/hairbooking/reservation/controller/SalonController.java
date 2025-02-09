@@ -78,6 +78,30 @@ public class SalonController {
         return updatedSalon != null ? ResponseEntity.ok(updatedSalon) : ResponseEntity.notFound().build();
     }
 
+    @PatchMapping("/{id}/employees/add")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<SalonDTO> addEmployeeToSalon(@PathVariable Long id, @RequestBody Long employeeId) {
+        System.out.println("Dodavanje frizera sa ID: " + employeeId + " u salon ID: " + id);
+
+        Optional<Salon> salonOptional = salonService.getSalonById(id);
+        Optional<User> employeeOptional = Optional.ofNullable(userService.getUserById(employeeId));
+
+        if (salonOptional.isPresent() && employeeOptional.isPresent()) {
+            Salon salon = salonOptional.get();
+            User employee = employeeOptional.get();
+
+            // ✅ Ako frizer nije već u salonu, dodaj ga
+            if (!salon.getEmployees().contains(employee)) {
+                salon.getEmployees().add(employee);
+                salonService.saveSalon(salon);
+            }
+
+            return ResponseEntity.ok(new SalonDTO(salon));
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+
     @PutMapping("/{id}/employees")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<SalonDTO> updateSalonEmployees(@PathVariable Long id, @RequestBody List<Long> employeeIds) {
