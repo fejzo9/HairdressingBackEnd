@@ -68,6 +68,11 @@ public class SalonService {
         }).orElse(null);
     }
 
+    @Transactional
+    public Salon saveSalon(Salon salon) {
+        return salonRepository.save(salon);
+    }
+
     public void deleteSalon(Long id) {
         salonRepository.deleteById(id);
     }
