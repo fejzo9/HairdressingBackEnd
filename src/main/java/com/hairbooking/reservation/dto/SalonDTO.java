@@ -1,6 +1,9 @@
 package com.hairbooking.reservation.dto;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.model.User;
 
 public class SalonDTO {
@@ -36,6 +39,28 @@ public class SalonDTO {
         this.ownerPhoneNumber = ownerPhoneNumber;
         this.ownerUsername = ownerUsername;
     }
+
+    public SalonDTO(Salon salon) {
+        this.name = salon.getName();
+        this.address = salon.getAddress();
+        this.phoneNumber = salon.getPhoneNumber();
+        this.email = salon.getEmail();
+        this.employeeNames = salon.getEmployees() != null
+                ? salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList())
+                : List.of();
+
+        User owner = salon.getOwner();
+        if (owner != null) {
+            this.ownerId = owner.getId();
+            this.ownerFirstName = owner.getFirstName();
+            this.ownerLastName = owner.getLastName();
+            this.ownerBirthDate = owner.getBirthDate() != null ? owner.getBirthDate().toString() : "N/A";
+            this.ownerEmail = owner.getEmail();
+            this.ownerPhoneNumber = owner.getPhoneNumber();
+            this.ownerUsername = owner.getUsername();
+        }
+    }
+
     // GETTERI & SETTERI
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
