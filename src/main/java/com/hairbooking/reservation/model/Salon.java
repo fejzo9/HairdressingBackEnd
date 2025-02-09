@@ -29,10 +29,12 @@ public class Salon {
     @Column(nullable = false)
     private String email;
 
-    @OneToMany
-    @JoinColumn(name = "salon_id")
-    //@JsonIgnore // Ignoriši zaposlenike u JSON odgovoru
-    //@JsonManagedReference // Ako želimo vidjeti podatke o zaposlenima, ali spriječiti rekurziju
+    @ManyToMany
+    @JoinTable(
+            name = "salons_employees",
+            joinColumns = @JoinColumn(name = "salon_salon_id"),
+            inverseJoinColumns = @JoinColumn(name = "employees_user_id")
+    )
     private List<User> employees;
 
     // Constructors
