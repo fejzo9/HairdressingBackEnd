@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.controller;
 
+import com.hairbooking.reservation.model.ChangePasswordRequest;
 import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.UserService;
@@ -67,5 +68,17 @@ public class UserController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<List<User>> getUsersByRole(@PathVariable Role role) {
         return ResponseEntity.ok(userService.getUsersByRole(role));
+    }
+
+    // Promjena lozinke korisnika
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
+        boolean isChanged = userService.changePassword(request.getUsername(), request.getOldPassword(), request.getNewPassword());
+
+        if (isChanged) {
+            return ResponseEntity.ok("Lozinka uspješno promijenjena!");
+        } else {
+            return ResponseEntity.badRequest().body("Neispravna stara lozinka ili korisnik ne postoji!");
+        }
     }
 }
