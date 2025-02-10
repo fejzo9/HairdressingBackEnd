@@ -101,6 +101,50 @@ public class SalonController {
         return ResponseEntity.notFound().build();
     }
 
+    @PatchMapping("/{id}/employees")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<SalonDTO> addEmployeesToSalon(@PathVariable Long id, @RequestBody List<Long> employeeIds) {
+        System.out.println("Dodavanje liste frizera u salon ID: " + id);
+
+        Optional<Salon> salonOptional = salonService.getSalonById(id);
+        if (salonOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Salon salon = salonOptional.get();
+        List<User> existingEmployees = salon.getEmployees(); // Trenutni frizeri u salonu
+        List<User> newEmployees = userService.findUsersByIds(employeeIds); // Novi frizeri iz request body-a
+
+        // ✅ Dodaj nove frizere koji još nisu u listi
+        for (User newEmployee : newEmployees) {
+            if (!existingEmployees.contains(newEmployee)) {
+                existingEmployees.add(newEmployee);
+            }
+        }
+        salon.setEmployees(existingEmployees);
+
+        salonService.saveSalon(salon); // ✅ Sačuvaj izmjene
+
+        // ✅ Kreiraj DTO odgovor
+        SalonDTO salonDTO = new SalonDTO(
+                salon.getId(),
+                salon.getName(),
+                salon.getAddress(),
+                salon.getPhoneNumber(),
+                salon.getEmail(),
+                salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList()),
+                salon.getOwner().getId(),
+                salon.getOwner().getFirstName(),
+                salon.getOwner().getLastName(),
+                salon.getOwner().getBirthDate() != null ? salon.getOwner().getBirthDate().toString() : "N/A",
+                salon.getOwner().getEmail(),
+                salon.getOwner().getPhoneNumber(),
+                salon.getOwner().getUsername()
+        );
+
+        return ResponseEntity.ok(salonDTO);
+    }
+
 
     @PutMapping("/{id}/employees")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
@@ -135,7 +179,6 @@ public class SalonController {
         }
         return ResponseEntity.notFound().build();
     }
-
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
