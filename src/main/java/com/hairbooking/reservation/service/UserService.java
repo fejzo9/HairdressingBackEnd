@@ -6,7 +6,9 @@ import com.hairbooking.reservation.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -207,4 +209,29 @@ public class UserService {
         }
         return false; // ❌ Korisnik nije pronađen
     }
+
+    // ✅ Metoda za dodavanje slike korisniku
+    public boolean uploadProfilePicture(Long userId, MultipartFile file) {
+        try {
+            Optional<User> userOptional = userRepository.findById(userId);
+
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                user.setProfilePicture(file.getBytes()); // 🔹 Čuva binarne podatke slike
+                userRepository.save(user);
+                return true;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // ✅ Metoda za preuzimanje slike korisnika
+    public byte[] getProfilePicture(Long userId) {
+        return userRepository.findById(userId)
+                .map(User::getProfilePicture)
+                .orElse(null); // Ako korisnik nema sliku, vraća `null`
+    }
+
 }
