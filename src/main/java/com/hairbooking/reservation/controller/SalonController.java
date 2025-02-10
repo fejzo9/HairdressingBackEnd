@@ -186,4 +186,22 @@ public class SalonController {
         salonService.deleteSalon(id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}/employees")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<String> removeAllEmployeesFromSalon(@PathVariable Long id) {
+        System.out.println("Brisanje svih zaposlenika iz salona ID: " + id);
+
+        Optional<Salon> salonOptional = salonService.getSalonById(id);
+        if (salonOptional.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Salon salon = salonOptional.get();
+        salon.getEmployees().clear(); // ✅ Brišemo sve frizere
+        salonService.saveSalon(salon); // ✅ Sačuvaj promjene
+
+        return ResponseEntity.ok("Svi zaposlenici su uspješno uklonjeni iz salona.");
+    }
+
 }
