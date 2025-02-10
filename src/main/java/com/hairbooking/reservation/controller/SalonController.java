@@ -5,6 +5,7 @@ import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.SalonService;
 import com.hairbooking.reservation.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -180,6 +181,7 @@ public class SalonController {
         return ResponseEntity.notFound().build();
     }
 
+    // Deleting Salon
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Void> deleteSalon(@PathVariable Long id) {
@@ -187,6 +189,32 @@ public class SalonController {
         return ResponseEntity.noContent().build();
     }
 
+    // Deleting One Employee from Salon
+    @DeleteMapping("/{salonId}/employees/{employeeId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<String> removeEmployeeFromSalon(@PathVariable Long salonId, @PathVariable Long employeeId) {
+        System.out.println("Brisanje zaposlenika ID: " + employeeId + " iz salona ID: " + salonId);
+
+        Optional<Salon> salonOptional = salonService.getSalonById(salonId);
+        Optional<User> employeeOptional = userService.findById(employeeId);
+
+        if (salonOptional.isPresent() && employeeOptional.isPresent()) {
+            Salon salon = salonOptional.get();
+            User employee = employeeOptional.get();
+
+            // ✅ Provjera da li je zaposleni u salonu
+            if (salon.getEmployees().contains(employee)) {
+                salon.getEmployees().remove(employee);
+                salonService.saveSalon(salon); // ✅ Sačuvaj promjene u bazi
+                return ResponseEntity.ok("Frizer uspješno uklonjen iz salona.");
+            } else {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Frizer nije pronađen u ovom salonu.");
+            }
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Salon ili frizer ne postoje.");
+    }
+
+    // Deleting All Employees from Salon
     @DeleteMapping("/{id}/employees")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<String> removeAllEmployeesFromSalon(@PathVariable Long id) {
