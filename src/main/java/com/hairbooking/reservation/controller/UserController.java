@@ -4,9 +4,12 @@ import com.hairbooking.reservation.model.ChangePasswordRequest;
 import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.UserService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -80,5 +83,32 @@ public class UserController {
         } else {
             return ResponseEntity.badRequest().body("Neispravna stara lozinka ili korisnik ne postoji!");
         }
+    }
+
+    // ✅ Upload slike
+    @PostMapping("/{id}/upload-profile-picture")
+    @PreAuthorize("hasRole('USER') or hasRole('OWNER') or hasRole('HAIRDRESSER') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
+    public ResponseEntity<String> uploadProfilePicture(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+
+        System.out.println("Primljen fajl: " + file.getOriginalFilename());
+
+        boolean success = userService.uploadProfilePicture(id, file);
+
+        if (success) {
+            return ResponseEntity.status(HttpStatus.CREATED).body("Profilna slika uspješno dodana!");
+        } else {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri uploadu slike!");
+        }
+    }
+
+    // ✅ Dohvatanje slike korisnika
+    @GetMapping("/{id}/profile-picture")
+    public ResponseEntity<byte[]> getProfilePicture(@PathVariable Long id) {
+        byte[] imageData = userService.getProfilePicture(id);
+
+        if (imageData != null) {
+            return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(imageData);
+        }
+        return ResponseEntity.notFound().build();
     }
 }
