@@ -183,7 +183,28 @@ public class UserService {
         return passwordEncoder.matches(rawPassword, user.getPassword());
     }
 
+    // Dohvatanje korisnika na osnovu uloge
     public List<User> getUsersByRole(Role role) {
         return userRepository.findAllByRole(role);
+    }
+
+    // Promjena passworda
+    public boolean changePassword(String username, String oldPassword, String newPassword) {
+        Optional<User> userOptional = userRepository.findByUsername(username);
+
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+
+            // 🔐 Provjera da li je unesena ispravna stara lozinka
+            if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+                return false; // ❌ Stara lozinka nije tačna
+            }
+
+            // ✅ Hashiraj novu lozinku i sačuvaj
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+            return true;
+        }
+        return false; // ❌ Korisnik nije pronađen
     }
 }
