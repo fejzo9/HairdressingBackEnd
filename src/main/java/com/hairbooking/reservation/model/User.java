@@ -42,6 +42,9 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+    @Lob  // 👈 Dodaje polje u bazi koje će čuvati binarne podatke (slike)
+    private byte[] profilePicture;
+
     public User() {
     }
 
@@ -92,6 +95,15 @@ public class User {
         this.phoneNumber = phoneNumber;
         this.birthDate = birthDate;
         this.role = role;
+    }
+
+    public User(String username, byte[] profilePicture){
+        this.username = username;
+        this.profilePicture = profilePicture;
+    }
+
+    public User(byte[] profilePicture){
+        this.profilePicture = profilePicture;
     }
 
     // Getters and Setters
@@ -168,6 +180,10 @@ public class User {
     public Role getRole() { return role; }
 
     public void setRole(Role role) { this.role = role; }
+
+    public byte[] getProfilePicture() { return profilePicture; }
+
+    public void setProfilePicture(byte[] profilePicture) { this.profilePicture = profilePicture; }
 
     @Override
     public boolean equals(Object obj) {
