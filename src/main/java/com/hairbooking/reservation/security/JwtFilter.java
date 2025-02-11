@@ -31,7 +31,15 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain chain)
             throws ServletException, IOException {
 
+        System.out.println("🔍 Request URI: " + request.getRequestURI());
         final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        // 🟢 Ako je zahtjev za profilnu sliku, pusti ga bez autentifikacije
+        if (request.getMethod().equals("GET") && request.getRequestURI().matches("^/users/\\d+/profile-picture$")) {
+            System.out.println("✅ Profilna slika - JWT filter preskače autentifikaciju");
+            chain.doFilter(request, response);
+            return;
+        }
 
         // 1️ Provjerava da li zahtjev sadrži "Authorization" header sa JWT tokenom
         if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
@@ -55,6 +63,7 @@ public class JwtFilter extends OncePerRequestFilter {
             }
         }
 
+        System.out.println("🔒 Proslijeđen zahtjev dalje u filter chain");
         // 4️⃣ Proslijedi zahtjev dalje u filter chain
         chain.doFilter(request, response);
     }
