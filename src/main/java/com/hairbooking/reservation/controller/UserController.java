@@ -4,6 +4,7 @@ import com.hairbooking.reservation.model.ChangePasswordRequest;
 import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.UserService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -95,7 +97,7 @@ public class UserController {
         boolean success = userService.uploadProfilePicture(id, file);
 
         if (success) {
-            return ResponseEntity.status(HttpStatus.CREATED).body("Profilna slika uspješno dodana!");
+            return ResponseEntity.status(HttpStatus.CREATED).body("Profilna slika uspjesno dodana!");
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri uploadu slike!");
         }
@@ -104,11 +106,22 @@ public class UserController {
     // ✅ Dohvatanje slike korisnika
     @GetMapping("/{id}/profile-picture")
     public ResponseEntity<byte[]> getProfilePicture(@PathVariable Long id) {
-        byte[] imageData = userService.getProfilePicture(id);
+        System.out.println("🔍 Pokušaj dohvatanja profilne slike za korisnika sa ID: " + id);
 
-        if (imageData != null) {
-            return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG).body(imageData);
+        Optional<User> userOptional = userService.getUserByIdOptional(id);
+
+        if (userOptional.isPresent() && userOptional.get().getProfilePicture() != null) {
+            System.out.println("✅ Profilna slika pronađena za korisnika: " + id);
+            byte[] imageBytes = userOptional.get().getProfilePicture();
+            String contentType = userOptional.get().getProfilePictureType();
+
+            // Postavljanje odgovarajućeg content-type headera
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(contentType)); // Može biti IMAGE_JPEG ako koristiš jpg slike
+            return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
         }
+
+        System.out.println("❌ Profilna slika NIJE pronađena za korisnika: " + id);
         return ResponseEntity.notFound().build();
     }
 }
