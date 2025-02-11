@@ -37,6 +37,10 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
+    public Optional<User> getUserByIdOptional(Long id) {
+        return userRepository.findById(id);
+    }
+
     public List<User> findUsersByIds(List<Long> ids) {
         return userRepository.findAllById(ids);
     }
@@ -217,7 +221,8 @@ public class UserService {
 
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
-                user.setProfilePicture(file.getBytes()); // 🔹 Čuva binarne podatke slike
+                user.setProfilePicture(file.getBytes()); // 🔹 Čuva binarne podatke slike, čuva sliku kao byte[]
+                user.setProfilePictureType(file.getContentType()); // Čuva tip slike (image/png, image/jpeg itd.)
                 userRepository.save(user);
                 return true;
             }
