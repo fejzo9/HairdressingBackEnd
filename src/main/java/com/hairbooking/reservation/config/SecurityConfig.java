@@ -33,6 +33,11 @@ public class SecurityConfig {
                     .cors(Customizer.withDefaults())
                     .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT - Bez sesija
                     .authorizeHttpRequests(auth -> auth
+
+                            // Endpoint za dohvatanje i dodavanje profilne slike sa /users endpointa
+                            .requestMatchers(HttpMethod.GET, "/users/*/profile-picture").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/users/*/upload-profile-picture").hasAnyRole("USER", "OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
+
                             // 🔓 Endpointi dostupni svima (registracija i login)
                             .requestMatchers("/registration/**", "/login/**").permitAll()
 
@@ -54,10 +59,6 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.PUT, "/salons/**").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.DELETE, "/salons/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.DELETE, "/salons/{salonId}/employees/{employeeId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
-
-                            // Endpoint za dohvatanje i dodavanje profilne slike sa /users endpointa
-                            .requestMatchers(HttpMethod.GET, "/users/*/profile-picture").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/users/*/upload-profile-picture").hasAnyRole("USER", "OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
 
                             // 🚫 Svi ostali zahtjevi zahtijevaju autentifikaciju
                             .anyRequest().authenticated()
