@@ -45,6 +45,9 @@ public class User {
     @Lob  // 👈 Dodaje polje u bazi koje će čuvati binarne podatke (slike)
     private byte[] profilePicture;
 
+    @Column(name = "profile_picture_type")
+    private String profilePictureType; // "image/png" ili "image/jpeg"
+
     public User() {
     }
 
@@ -104,6 +107,11 @@ public class User {
 
     public User(byte[] profilePicture){
         this.profilePicture = profilePicture;
+    }
+
+    public User(byte[] profilePicture, String profilePictureType){
+        this.profilePicture = profilePicture;
+        this.profilePictureType = profilePictureType;
     }
 
     // Getters and Setters
@@ -184,6 +192,14 @@ public class User {
     public byte[] getProfilePicture() { return profilePicture; }
 
     public void setProfilePicture(byte[] profilePicture) { this.profilePicture = profilePicture; }
+
+    public String getProfilePictureType() {
+        return profilePictureType;
+    }
+
+    public void setProfilePictureType(String profilePictureType) {
+        this.profilePictureType = profilePictureType;
+    }
 
     @Override
     public boolean equals(Object obj) {
