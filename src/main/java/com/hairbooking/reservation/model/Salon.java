@@ -1,8 +1,8 @@
 package com.hairbooking.reservation.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -36,6 +36,18 @@ public class Salon {
             inverseJoinColumns = @JoinColumn(name = "employees_user_id")
     )
     private List<User> employees;
+
+    // Lista slika kao binarni podaci
+    @ElementCollection
+    @CollectionTable(name = "salon_images", joinColumns = @JoinColumn(name = "salon_id"))
+    @Column(name = "image_data")
+    private List<byte[]> images = new ArrayList<>();
+
+    // Lista formata slika
+    @ElementCollection
+    @CollectionTable(name = "salon_images_metadata", joinColumns = @JoinColumn(name = "salon_id"))
+    @Column(name = "image_type")
+    private List<String> imageTypes = new ArrayList<>();
 
     // Constructors
     public Salon() {}
@@ -77,7 +89,30 @@ public class Salon {
         this.email = email;
     }
 
-    // GETTER and SETTERS
+    // ✅ KONSTRUKTOR BEZ SLIKA
+    public Salon(String name, String address, String phoneNumber, String email, User owner, List<User> employees) {
+        this.name = name;
+        this.address = address;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.owner = owner;
+        this.employees = employees != null ? employees : new ArrayList<>();
+        this.images = new ArrayList<>();
+        this.imageTypes = new ArrayList<>();
+    }
+
+    // ✅ KONSTRUKTOR SA SLIKAMA
+    public Salon(String name, String address, String phoneNumber, String email, User owner, List<User> employees, List<byte[]> images, List<String> imageTypes) {
+        this.name = name;
+        this.address = address;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.owner = owner;
+        this.employees = employees != null ? employees : new ArrayList<>();
+        this.images = images != null ? images : new ArrayList<>();
+    }
+
+        // GETTER and SETTERS
 
     public void setId(Long id) {
         this.id = id;
@@ -135,4 +170,11 @@ public class Salon {
         this.employees = employees;
     }
 
+    public List<byte[]> getImages() { return images;}
+
+    public void setImages(List<byte[]> images) { this.images = images; }
+
+    public List<String> getImageTypes() { return imageTypes; }
+
+    public void setImageTypes(List<String> imageTypes) { this.imageTypes = imageTypes; }
 }
