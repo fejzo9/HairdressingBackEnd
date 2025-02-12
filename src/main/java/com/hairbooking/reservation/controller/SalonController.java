@@ -6,14 +6,15 @@ import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.SalonService;
 import com.hairbooking.reservation.service.UserService;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -248,14 +249,52 @@ public class SalonController {
 
     // ✅ Dohvati sve slike salona
     @GetMapping("/{id}/images")
-    public ResponseEntity<List<SalonImageDTO>> getSalonImages(@PathVariable Long id) {
-        List<SalonImageDTO> images = salonService.getSalonImages(id);
+    public ResponseEntity<List<Map<String, String>>> getSalonImages(@PathVariable Long id) {
+        Optional<Salon> salonOptional = salonService.getSalonById(id);
 
-        if (!images.isEmpty()) {
-            return ResponseEntity.ok(images);
+        if (salonOptional.isPresent()) {
+            Salon salon = salonOptional.get();
+
+            if (salon.getImages() != null && !salon.getImages().isEmpty()) {
+                List<Map<String, String>> imageList = new ArrayList<>();
+
+                for (int i = 0; i < salon.getImages().size(); i++) {
+                    Map<String, String> imageMap = new HashMap<>();
+                    imageMap.put("imageData", Base64.getEncoder().encodeToString(salon.getImages().get(i))); // ✅ Enkodiraj u Base64
+                    imageMap.put("contentType", salon.getImageTypes().get(i)); // ✅ Dodaj format slike (jpeg/png)
+                    imageList.add(imageMap);
+                }
+
+                return ResponseEntity.ok(imageList);
+            }
         }
+
         return ResponseEntity.notFound().build();
     }
+
+
+    // Dohvati jednu sliku salona
+    @GetMapping("/{id}/images/{imageIndex}")
+    public ResponseEntity<byte[]> getSalonImage(@PathVariable Long id, @PathVariable int imageIndex) {
+        Optional<Salon> salonOptional = salonService.getSalonById(id);
+
+        if (salonOptional.isPresent()) {
+            Salon salon = salonOptional.get();
+
+            if (salon.getImages() != null && imageIndex < salon.getImages().size()) {
+                byte[] imageBytes = salon.getImages().get(imageIndex);
+                String contentType = salon.getImageTypes().get(imageIndex);
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.parseMediaType(contentType));
+
+                return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
+            }
+        }
+
+        return ResponseEntity.notFound().build();
+    }
+
 
     // ✅ Brisanje slike iz salona
     @DeleteMapping("/{salonId}/images/{imageIndex}")
