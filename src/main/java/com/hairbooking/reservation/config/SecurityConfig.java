@@ -59,9 +59,11 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/salons/**").permitAll()
                             .requestMatchers(HttpMethod.POST, "/salons/{id}/upload-images").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.POST, "/salons/**").hasAnyRole( "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.PUT, "/salons/{salonId}/images/{imageIndex}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.PUT, "/salons/**").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/salons/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.DELETE, "/salons/{salonId}/employees/{employeeId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/salons/{salonId}/images/{imageIndex}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/salons/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
 
                             // 🚫 Svi ostali zahtjevi zahtijevaju autentifikaciju
                             .anyRequest().authenticated()
