@@ -54,6 +54,8 @@ public class SecurityConfig {
                             .requestMatchers("/owners/**").hasRole("OWNER")
 
                             // Endpoint /salons i pristup metodama
+                            .requestMatchers(HttpMethod.GET, "/salons/{id}/images").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/salons/{id}/images/{imageIndex}").permitAll()
                             .requestMatchers(HttpMethod.GET, "/salons/**").permitAll()
                             .requestMatchers(HttpMethod.POST, "/salons/{id}/upload-images").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.POST, "/salons/**").hasAnyRole( "ADMIN", "SUPER_ADMIN")
