@@ -1,6 +1,7 @@
 package com.hairbooking.reservation.controller;
 
 import com.hairbooking.reservation.dto.SalonDTO;
+import com.hairbooking.reservation.dto.SalonImageDTO;
 import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.SalonService;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -226,10 +228,56 @@ public class SalonController {
         }
 
         Salon salon = salonOptional.get();
-        salon.getEmployees().clear(); // ✅ Brišemo sve frizere
-        salonService.saveSalon(salon); // ✅ Sačuvaj promjene
+        salon.getEmployees().clear(); // Brišemo sve frizere
+        salonService.saveSalon(salon); // Čuvamo promjene
 
         return ResponseEntity.ok("Svi zaposlenici su uspješno uklonjeni iz salona.");
     }
 
+    // ✅ Upload slika u salon
+    @PostMapping("/{id}/upload-images")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<String> uploadSalonImages(@PathVariable Long id, @RequestParam("files") List<MultipartFile> files) {
+        boolean success = salonService.addImagesToSalon(id, files);
+
+        if (success) {
+            return ResponseEntity.ok("Slike uspješno dodane!");
+        }
+        return ResponseEntity.badRequest().body("Greška pri dodavanju slika.");
+    }
+
+    // ✅ Dohvati sve slike salona
+    @GetMapping("/{id}/images")
+    public ResponseEntity<List<SalonImageDTO>> getSalonImages(@PathVariable Long id) {
+        List<SalonImageDTO> images = salonService.getSalonImages(id);
+
+        if (!images.isEmpty()) {
+            return ResponseEntity.ok(images);
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    // ✅ Brisanje slike iz salona
+    @DeleteMapping("/{salonId}/images/{imageIndex}")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<String> deleteSalonImage(@PathVariable Long salonId, @PathVariable int imageIndex) {
+        boolean success = salonService.deleteSalonImage(salonId, imageIndex);
+
+        if (success) {
+            return ResponseEntity.ok("Slika uspješno obrisana!");
+        }
+        return ResponseEntity.badRequest().body("Greška pri brisanju slike.");
+    }
+
+    // ✅ Ažuriranje slike u salonu
+    @PutMapping("/{salonId}/images/{imageIndex}")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<String> updateSalonImage(@PathVariable Long salonId, @PathVariable int imageIndex, @RequestParam("file") MultipartFile file) {
+        boolean success = salonService.updateSalonImage(salonId, imageIndex, file);
+
+        if (success) {
+            return ResponseEntity.ok("Slika uspješno ažurirana!");
+        }
+        return ResponseEntity.badRequest().body("Greška pri ažuriranju slike.");
+    }
 }
