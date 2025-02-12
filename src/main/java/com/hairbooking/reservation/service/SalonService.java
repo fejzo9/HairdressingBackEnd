@@ -152,7 +152,7 @@ public class SalonService {
         if (salonOptional.isPresent()) {
             Salon salon = salonOptional.get();
 
-            if (imageIndex >= 0 && imageIndex < salon.getImages().size()) {
+            if (salon.getImages() != null && imageIndex >= 0 && imageIndex < salon.getImages().size()) {
                 try {
                     salon.getImages().set(imageIndex, newFile.getBytes());
                     salon.getImageTypes().set(imageIndex, newFile.getContentType());
