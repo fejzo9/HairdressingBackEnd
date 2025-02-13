@@ -174,6 +174,7 @@ public class UserService {
     }
 
     // Pronalaženje korisnika na osnovu korisničkog imena ili emaila
+    @Transactional
     public User findByUsernameOrEmail(String identifier) {
         Optional<User> user = userRepository.findByUsername(identifier);
 
