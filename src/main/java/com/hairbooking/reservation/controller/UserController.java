@@ -25,16 +25,12 @@ public class UserController {
         this.userService = userService;
     }
 
-    // 🔐 Omogućava samo ADMINIMA da vide sve korisnike
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
 
-    // 🔐 Omogućava ADMINIMA i vlasnicima naloga da vide korisnika po ID-u
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
         User user = userService.getUserById(id);
         if (user != null) {
