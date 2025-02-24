@@ -38,6 +38,7 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/users/*/profile-picture").permitAll()
                             .requestMatchers(HttpMethod.GET, "/users/*").permitAll()
                             .requestMatchers(HttpMethod.POST, "/users/*/upload-profile-picture").hasAnyRole("USER", "OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.PUT, "/users/**").permitAll()
 
                             // Endpoint za promjenu passworda korisnika
                             .requestMatchers(HttpMethod.POST,"/users/change-password").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
