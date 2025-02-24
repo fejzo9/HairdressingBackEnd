@@ -47,7 +47,6 @@ public class UserController {
 
     // 🔐 Omogućava samo ADMINIMA da mijenjaju korisnike
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
         User user = userService.updateUser(id, updatedUser);
         if (user != null) {
