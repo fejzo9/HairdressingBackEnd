@@ -39,6 +39,16 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
+    @GetMapping("/username/{username}")
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username){
+        Optional<User> userOptional = userService.getUserByUsername(username);
+        if (userOptional.isPresent()) {
+            return ResponseEntity.ok(userOptional.get());
+        } else {
+        return ResponseEntity.notFound().build();
+        }
+    }
+
     @PostMapping
     @PreAuthorize("permitAll()")
     public User createUser(@RequestBody User user) {
