@@ -37,6 +37,11 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
+    @Transactional
+    public Optional<User> getUserByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
     public Optional<User> getUserByIdOptional(Long id) {
         return userRepository.findById(id);
     }
