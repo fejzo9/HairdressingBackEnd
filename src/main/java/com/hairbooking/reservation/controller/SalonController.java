@@ -272,7 +272,6 @@ public class SalonController {
         return ResponseEntity.notFound().build();
     }
 
-
     // Dohvati jednu sliku salona
     @GetMapping("/{id}/images/{imageIndex}")
     public ResponseEntity<byte[]> getSalonImage(@PathVariable Long id, @PathVariable int imageIndex) {
@@ -294,7 +293,6 @@ public class SalonController {
 
         return ResponseEntity.notFound().build();
     }
-
 
     // ✅ Brisanje slike iz salona
     @DeleteMapping("/{salonId}/images/{imageIndex}")
