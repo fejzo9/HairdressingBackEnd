@@ -2,6 +2,7 @@ package com.hairbooking.reservation.controller;
 
 import com.hairbooking.reservation.dto.SalonDTO;
 import com.hairbooking.reservation.dto.SalonImageDTO;
+import com.hairbooking.reservation.dto.SalonRequestDTO;
 import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.SalonService;
@@ -71,8 +72,19 @@ public class SalonController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public Salon createSalon(@RequestBody Salon salon) {
-        return salonService.createSalon(salon);
+    public ResponseEntity<?> createSalon(@RequestBody SalonRequestDTO request) {
+        try {
+            Salon newSalon = new Salon();
+            newSalon.setName(request.getName());
+            newSalon.setAddress(request.getAddress());
+            newSalon.setPhoneNumber(request.getPhoneNumber());
+            newSalon.setEmail(request.getEmail());
+
+            Salon savedSalon = salonService.createSalon(newSalon, request.getOwnerUsername());
+            return ResponseEntity.ok(savedSalon);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Greška pri dodavanju salona: " + e.getMessage());
+        }
     }
 
     @PutMapping("/{id}")
