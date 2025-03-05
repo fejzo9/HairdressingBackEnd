@@ -1,12 +1,12 @@
 package com.hairbooking.reservation.controller;
 
 import com.hairbooking.reservation.dto.SalonDTO;
-import com.hairbooking.reservation.dto.SalonImageDTO;
 import com.hairbooking.reservation.dto.SalonRequestDTO;
 import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.SalonService;
 import com.hairbooking.reservation.service.UserService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -35,6 +35,7 @@ public class SalonController {
         return salonService.getAllSalons();
     }
 
+    @Transactional
     @GetMapping("/{id}")
     public ResponseEntity<SalonDTO> getSalonById(@PathVariable Long id) {
         System.out.println("Zahtjev za salon sa ID-jem: " + id);
