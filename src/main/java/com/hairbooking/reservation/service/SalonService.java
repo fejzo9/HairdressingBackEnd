@@ -4,6 +4,7 @@ import com.hairbooking.reservation.dto.SalonDTO;
 import com.hairbooking.reservation.dto.SalonImageDTO;
 import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.repository.SalonRepository;
+import com.hairbooking.reservation.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import com.hairbooking.reservation.model.User;
@@ -20,9 +21,11 @@ import java.util.stream.Collectors;
 public class SalonService {
 
     private final SalonRepository salonRepository;
+    private final UserRepository userRepository;
 
-    public SalonService(SalonRepository salonRepository) {
+    public SalonService(SalonRepository salonRepository, UserRepository userRepository) {
         this.salonRepository = salonRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -58,7 +61,20 @@ public class SalonService {
         return salonOptional;
     }
 
-    public Salon createSalon(Salon salon) {
+    @Transactional
+    public Salon createSalon(Salon salon, String ownerUsername) {
+        // 🔹 Pronađi vlasnika po username-u
+        User owner = userRepository.findByUsername(ownerUsername)
+                .orElseThrow(() -> new IllegalArgumentException("❌ Vlasnik sa username-om '" + ownerUsername + "' nije pronađen!"));
+
+        if (owner == null) {
+            throw new IllegalArgumentException("❌ Vlasnik sa username-om '" + ownerUsername + "' nije pronađen!");
+        }
+
+        // 🔹 Postavi vlasnika salonu
+        salon.setOwner(owner);
+
+        // 🔹 Sačuvaj salon u bazi
         return salonRepository.save(salon);
     }
 
