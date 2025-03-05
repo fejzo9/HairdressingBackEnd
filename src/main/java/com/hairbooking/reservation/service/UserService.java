@@ -196,6 +196,7 @@ public class UserService {
     }
 
     // Dohvatanje korisnika na osnovu uloge
+    @Transactional
     public List<User> getUsersByRole(Role role) {
         return userRepository.findAllByRole(role);
     }
