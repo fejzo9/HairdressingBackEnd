@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.model.User;
+import org.hibernate.Hibernate;
 
 public class SalonDTO {
     private Long id;
@@ -49,8 +50,8 @@ public class SalonDTO {
                 ? salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList())
                 : List.of();
 
-        User owner = salon.getOwner();
-        if (owner != null) {
+        if (Hibernate.isInitialized(salon.getOwner())) { // ✅ Provjera da li je učitan
+            User owner = salon.getOwner();
             this.ownerId = owner.getId();
             this.ownerFirstName = owner.getFirstName();
             this.ownerLastName = owner.getLastName();
@@ -58,6 +59,14 @@ public class SalonDTO {
             this.ownerEmail = owner.getEmail();
             this.ownerPhoneNumber = owner.getPhoneNumber();
             this.ownerUsername = owner.getUsername();
+        } else {
+            this.ownerId = null;
+            this.ownerFirstName = "N/A";
+            this.ownerLastName = "N/A";
+            this.ownerBirthDate = "N/A";
+            this.ownerEmail = "N/A";
+            this.ownerPhoneNumber = "N/A";
+            this.ownerUsername = "N/A";
         }
     }
 
