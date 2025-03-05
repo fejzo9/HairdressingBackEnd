@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -35,6 +36,7 @@ public class User {
     @Column(nullable = false)
     private String phoneNumber;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     @Column(nullable = false)
     private LocalDate birthDate;
 
