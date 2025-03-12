@@ -12,6 +12,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -329,5 +333,39 @@ public class SalonController {
             return ResponseEntity.ok("Slika uspješno ažurirana!");
         }
         return ResponseEntity.badRequest().body("Greška pri ažuriranju slike.");
+    }
+
+    @GetMapping("/owner")
+    @PreAuthorize("hasRole('OWNER')")
+    public ResponseEntity<?> getSalonsByOwner() {
+
+        // ✅ Umjesto @AuthenticationPrincipal, koristimo SecurityContextHolder
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof String)) {
+            System.out.println("❌ Autentifikacija nije uspjela! authentication = " + authentication);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Neuspješna autentifikacija.");
+        }
+
+        String username = (String) authentication.getPrincipal(); // Dohvati username
+        System.out.println("🔍 Autentifikovani korisnik: " + username);
+
+        // ✅ Dohvati salone na osnovu username-a vlasnika
+        List<Salon> salons = salonService.getSalonsByOwnerUsername(username);
+
+        if (salons.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Salon nije pronađen za ovog vlasnika.");
+        }
+
+        // ✅ Kreiranje liste sa ID-jem i imenom salona
+        List<Map<String, Object>> salonList = new ArrayList<>();
+        for (Salon salon : salons) {
+            Map<String, Object> salonMap = new HashMap<>();
+            salonMap.put("id", salon.getId());
+            salonMap.put("name", salon.getName());
+            salonList.add(salonMap);
+        }
+
+        return ResponseEntity.ok(salonList);
     }
 }
