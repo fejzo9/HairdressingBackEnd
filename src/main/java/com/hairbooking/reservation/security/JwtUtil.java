@@ -37,11 +37,16 @@ public class JwtUtil {
 
     // ✅ 2. Ekstrakcija podataka (claimova) iz tokena
     public Claims extractClaims(String token) {
-        return Jwts.parser()
-                .verifyWith(getSignKey()) // Provjera potpisa
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            return Jwts.parser()
+                    .verifyWith(getSignKey()) // Provjera potpisa
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+        } catch (Exception e) {
+            System.out.println("❌ Greška pri dekodiranju JWT tokena: " + e.getMessage());
+            return null;
+        }
     }
 
     // ✅ 3. Dohvatanje korisničkog imena iz tokena
