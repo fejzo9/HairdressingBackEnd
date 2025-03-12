@@ -5,6 +5,7 @@ import com.hairbooking.reservation.dto.SalonImageDTO;
 import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.repository.SalonRepository;
 import com.hairbooking.reservation.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import com.hairbooking.reservation.model.User;
@@ -180,5 +181,17 @@ public class SalonService {
             }
         }
         return false;
+    }
+
+    public List<Salon> getSalonByOwnerId(Long ownerId) {
+        return salonRepository.findByOwnerId(ownerId);
+    }
+
+    @Transactional
+    public List<Salon> getSalonsByOwnerUsername(String username) {
+        User owner = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("Vlasnik sa username-om " + username + " nije pronađen"));
+
+        return salonRepository.findByOwnerId(owner.getId());
     }
 }
