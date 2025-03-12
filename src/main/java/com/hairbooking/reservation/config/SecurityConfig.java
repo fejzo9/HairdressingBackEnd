@@ -63,6 +63,7 @@ public class SecurityConfig {
                             // Endpoint /salons i pristup metodama
                             .requestMatchers(HttpMethod.GET, "/salons/{id}/images").permitAll()
                             .requestMatchers(HttpMethod.GET, "/salons/{id}/images/{imageIndex}").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/salons/owner").hasRole("OWNER")
                             .requestMatchers(HttpMethod.GET, "/salons/**").permitAll()
                             .requestMatchers(HttpMethod.POST, "/salons/{id}/upload-images").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.POST, "/salons/**").hasAnyRole( "ADMIN", "SUPER_ADMIN")
