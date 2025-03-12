@@ -49,22 +49,30 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 2️⃣ Ekstraktuje token iz Authorization headera
         final String token = authorizationHeader.substring(7);
-        final String username = jwtUtil.extractUsername(token);
+        System.out.println("🔍 JWT Token primljen: " + token);
 
-        // 3️⃣ Ako korisnik nije autentifikovan i token je validan, dopusti pristup
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        try {
+            final String username = jwtUtil.extractUsername(token);
+
+            System.out.println("✅ JWT validan! Username iz tokena: " + username);
+
             if (jwtUtil.validateToken(token, username)) {
                 String role = jwtUtil.extractRole(token);
+                System.out.println(" Uloga: " + role);
+                List<SimpleGrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
+
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(username, null,
-                                List.of(new SimpleGrantedAuthority(role))); // ✅ Postavlja ulogu korisnika
+                        new UsernamePasswordAuthenticationToken(username, token, authorities);
 
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                System.out.println("✅ Autentifikacija postavljena u SecurityContextHolder: " + SecurityContextHolder.getContext().getAuthentication());
             }
+
+        } catch (Exception e) {
+            System.out.println("❌ Greška pri dekodiranju JWT tokena: " + e.getMessage());
         }
 
         System.out.println("🔒 Proslijeđen zahtjev dalje u filter chain");
-        // 4️⃣ Proslijedi zahtjev dalje u filter chain
         chain.doFilter(request, response);
     }
 
