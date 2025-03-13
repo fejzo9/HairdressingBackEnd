@@ -25,8 +25,17 @@ public class ServiceController {
 
     @GetMapping("/salon/{salonId}")
     @PreAuthorize("permitAll()") // Svi mogu vidjeti usluge salona
-    public ResponseEntity<List<Service>> getServicesBySalon(@PathVariable Long salonId) {
-        return ResponseEntity.ok(serviceService.getServicesBySalonId(salonId));
+    public ResponseEntity<List<ServiceDTO>> getServicesBySalon(@PathVariable Long salonId) {
+        Salon salon = salonService.getSalonById(salonId)
+                .orElseThrow(() -> new EntityNotFoundException("Salon nije pronađen"));
+
+        // Konvertujemo listu usluga u DTO format
+        List<ServiceDTO> serviceDTOs = salon.getServices()
+                .stream()
+                .map(ServiceDTO::new) // Pretvaramo Service u ServiceDTO
+                .toList();
+
+        return ResponseEntity.ok(serviceDTOs);
     }
 
     @PostMapping("/salon/{salonId}")
