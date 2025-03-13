@@ -58,6 +58,7 @@ public class SalonService {
         Optional<Salon> salonOptional = salonRepository.findById(id);
         salonOptional.ifPresent(salon -> {
             salon.getEmployees().size(); // Prisilno učitavanje zaposlenih (Lazy Loading)
+            salon.getServices().size();
         });
         return salonOptional;
     }
