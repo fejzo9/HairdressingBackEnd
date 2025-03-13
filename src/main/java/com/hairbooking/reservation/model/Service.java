@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -23,6 +24,7 @@ public class Service {
 
     @ManyToOne
     @JoinColumn(name = "salon_id", nullable = false)
+    @JsonIgnore // Spriječava vraćanje cijelog objekta Salon unutar Service
     private Salon salon;
 
     // GETTERI & SETTERI
