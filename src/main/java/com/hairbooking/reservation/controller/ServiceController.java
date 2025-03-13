@@ -50,7 +50,8 @@ public class ServiceController {
     }
 
 
-    @PutMapping("/{serviceId}")
+    @PutMapping("/salon/{salonId}/{serviceId}")
+    @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Service> updateService(@PathVariable Long serviceId, @RequestBody Service service) {
         return ResponseEntity.ok(serviceService.updateService(serviceId, service));
     }
