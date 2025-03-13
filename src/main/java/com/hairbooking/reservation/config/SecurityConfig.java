@@ -73,6 +73,12 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.DELETE, "/salons/{salonId}/images/{imageIndex}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.DELETE, "/salons/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
 
+                            // Endpoint /service i pristup metodama
+                            .requestMatchers(HttpMethod.GET, "/services/salon/{salonId}").permitAll() // Svi mogu vidjeti usluge
+                            .requestMatchers(HttpMethod.POST, "/services/salon/{salonId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.PUT, "/services/{serviceId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/services/{serviceId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+
                             // 🚫 Svi ostali zahtjevi zahtijevaju autentifikaciju
                             .anyRequest().authenticated()
                 )
