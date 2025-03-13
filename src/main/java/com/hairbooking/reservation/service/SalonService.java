@@ -64,6 +64,24 @@ public class SalonService {
     }
 
     @Transactional
+    public Optional<Salon> getEmployeesForSalon(Long salonId) {
+        Optional<Salon> salonOptional = salonRepository.findById(salonId);
+        salonOptional.ifPresent(salon -> {
+            salon.getEmployees().size(); // Prisilno učitavanje zaposlenih (Lazy Loading)
+        });
+        return salonOptional;
+    }
+
+    @Transactional
+    public Optional<Salon> getServicesForSalon(Long salonId) {
+        Optional<Salon> salonOptional = salonRepository.findById(salonId);
+        salonOptional.ifPresent(salon -> {
+            salon.getServices().size(); // Prisilno učitavanje usluga (Lazy Loading)
+        });
+        return salonOptional;
+    }
+
+    @Transactional
     public Salon createSalon(Salon salon, String ownerUsername) {
         // 🔹 Pronađi vlasnika po username-u
         User owner = userRepository.findByUsername(ownerUsername)
