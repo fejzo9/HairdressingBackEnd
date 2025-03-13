@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -29,7 +30,7 @@ public class Salon {
     @Column(nullable = false)
     private String email;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "salons_employees",
             joinColumns = @JoinColumn(name = "salon_salon_id"),
@@ -50,7 +51,8 @@ public class Salon {
     private List<String> imageTypes = new ArrayList<>();
 
     // Usluge salona
-    @OneToMany(mappedBy = "salon", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "salon", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JsonIgnore // Sprječava vraćanje cijelog salona u Service JSON-u
     private List<Service> services = new ArrayList<>();
 
     // Constructors
