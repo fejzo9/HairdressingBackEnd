@@ -19,6 +19,7 @@ public class ServiceService {
         this.salonService = salonService;
     }
 
+    @Transactional
     public List<Service> getServicesBySalonId(Long salonId) {
         return serviceRepository.findBySalonId(salonId);
     }
