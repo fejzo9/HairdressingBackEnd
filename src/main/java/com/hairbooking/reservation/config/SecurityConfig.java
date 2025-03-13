@@ -76,7 +76,7 @@ public class SecurityConfig {
                             // Endpoint /service i pristup metodama
                             .requestMatchers(HttpMethod.GET, "/services/salon/{salonId}").permitAll() // Svi mogu vidjeti usluge
                             .requestMatchers(HttpMethod.POST, "/services/salon/{salonId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/services/{serviceId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.PUT, "/services/salon/{salonId}/{serviceId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.DELETE,  "/services/salon/{salonId}/{serviceId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
 
                             // 🚫 Svi ostali zahtjevi zahtijevaju autentifikaciju
