@@ -13,7 +13,7 @@ public class Salon {
     @Column(name = "salon_id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
@@ -48,6 +48,10 @@ public class Salon {
     @CollectionTable(name = "salon_images_metadata", joinColumns = @JoinColumn(name = "salon_id"))
     @Column(name = "image_type")
     private List<String> imageTypes = new ArrayList<>();
+
+    // Usluge salona
+    @OneToMany(mappedBy = "salon", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Service> services = new ArrayList<>();
 
     // Constructors
     public Salon() {}
@@ -112,7 +116,7 @@ public class Salon {
         this.images = images != null ? images : new ArrayList<>();
     }
 
-        // GETTER and SETTERS
+    // GETTER and SETTERS
 
     public void setId(Long id) {
         this.id = id;
@@ -177,4 +181,12 @@ public class Salon {
     public List<String> getImageTypes() { return imageTypes; }
 
     public void setImageTypes(List<String> imageTypes) { this.imageTypes = imageTypes; }
+
+    public List<Service> getServices() {
+        return services;
+    }
+
+    public void setServices(List<Service> services) {
+        this.services = services;
+    }
 }
