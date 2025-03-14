@@ -1,6 +1,7 @@
 package com.hairbooking.reservation.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -49,6 +50,10 @@ public class User {
 
     @Column(name = "profile_picture_type")
     private String profilePictureType; // "image/png" ili "image/jpeg"
+
+    @OneToOne(mappedBy = "hairdresser", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private Calendar calendar;
 
     public User() {
     }
