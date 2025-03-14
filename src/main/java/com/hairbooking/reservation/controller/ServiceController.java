@@ -2,7 +2,7 @@ package com.hairbooking.reservation.controller;
 
 import com.hairbooking.reservation.dto.ServiceDTO;
 import com.hairbooking.reservation.model.Salon;
-import com.hairbooking.reservation.model.Service;
+import com.hairbooking.reservation.model.ServiceInSalon;
 import com.hairbooking.reservation.service.SalonService;
 import com.hairbooking.reservation.service.ServiceService;
 import jakarta.persistence.EntityNotFoundException;
@@ -32,7 +32,7 @@ public class ServiceController {
         // Konvertujemo listu usluga u DTO format
         List<ServiceDTO> serviceDTOs = salon.getServices()
                 .stream()
-                .map(ServiceDTO::new) // Pretvaramo Service u ServiceDTO
+                .map(ServiceDTO::new) // Pretvaramo ServiceInSalon u ServiceDTO
                 .toList();
 
         return ResponseEntity.ok(serviceDTOs);
@@ -44,16 +44,16 @@ public class ServiceController {
         Salon salon = salonService.getSalonById(salonId)
                 .orElseThrow(() -> new EntityNotFoundException("Salon nije pronađen")); // ✔️ Koristimo Optional
 
-        Service newService = serviceService.addServiceToSalon(salon.getId(), serviceDTO.toEntity(salon));
+        ServiceInSalon newServiceInSalon = serviceService.addServiceToSalon(salon.getId(), serviceDTO.toEntity(salon));
 
-        return ResponseEntity.ok(new ServiceDTO(newService));
+        return ResponseEntity.ok(new ServiceDTO(newServiceInSalon));
     }
 
 
     @PutMapping("/salon/{salonId}/{serviceId}")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<Service> updateService(@PathVariable Long serviceId, @RequestBody Service service) {
-        return ResponseEntity.ok(serviceService.updateService(serviceId, service));
+    public ResponseEntity<ServiceInSalon> updateService(@PathVariable Long serviceId, @RequestBody ServiceInSalon serviceInSalon) {
+        return ResponseEntity.ok(serviceService.updateService(serviceId, serviceInSalon));
     }
 
     @DeleteMapping("/salon/{salonId}/{serviceId}")
