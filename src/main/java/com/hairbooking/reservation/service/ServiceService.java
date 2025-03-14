@@ -1,6 +1,6 @@
 package com.hairbooking.reservation.service;
 
-import com.hairbooking.reservation.model.Service;
+import com.hairbooking.reservation.model.ServiceInSalon;
 import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.repository.ServiceRepository;
 import com.hairbooking.reservation.repository.SalonRepository;
@@ -22,28 +22,28 @@ public class ServiceService {
     }
 
     @Transactional
-    public List<Service> getServicesBySalonId(Long salonId) {
+    public List<ServiceInSalon> getServicesBySalonId(Long salonId) {
         return serviceRepository.findBySalonId(salonId);
     }
 
     @Transactional
-    public Service addServiceToSalon(Long salonId, Service service) {
+    public ServiceInSalon addServiceToSalon(Long salonId, ServiceInSalon serviceInSalon) {
         Salon salon = salonService.getSalonById(salonId)
                 .orElseThrow(() -> new EntityNotFoundException("Salon nije pronađen")); // ✔️ Koristimo Optional
 
-        service.setSalon(salon);
-        return serviceRepository.save(service);
+        serviceInSalon.setSalon(salon);
+        return serviceRepository.save(serviceInSalon);
     }
 
-    public Service updateService(Long serviceId, Service newService) {
-        Service service = serviceRepository.findById(serviceId)
+    public ServiceInSalon updateService(Long serviceId, ServiceInSalon newServiceInSalon) {
+        ServiceInSalon serviceInSalon = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new EntityNotFoundException("Usluga nije pronađena"));
 
-        service.setNazivUsluge(newService.getNazivUsluge());
-        service.setTrajanjeUsluge(newService.getTrajanjeUsluge());
-        service.setCijenaUsluge(newService.getCijenaUsluge());
+        serviceInSalon.setNazivUsluge(newServiceInSalon.getNazivUsluge());
+        serviceInSalon.setTrajanjeUsluge(newServiceInSalon.getTrajanjeUsluge());
+        serviceInSalon.setCijenaUsluge(newServiceInSalon.getCijenaUsluge());
 
-        return serviceRepository.save(service);
+        return serviceRepository.save(serviceInSalon);
     }
 
     @Transactional
@@ -51,18 +51,18 @@ public class ServiceService {
         Salon salon = salonRepository.findById(salonId)
                 .orElseThrow(() -> new EntityNotFoundException("Salon sa ID-em " + salonId + " nije pronađen"));
 
-        Service service = serviceRepository.findById(serviceId)
+        ServiceInSalon serviceInSalon = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new EntityNotFoundException("Usluga sa ID-em " + serviceId + " nije pronađena"));
 
         // ❌ Provjera da li usluga pripada salonu
-        if (!service.getSalon().getId().equals(salonId)) {
+        if (!serviceInSalon.getSalon().getId().equals(salonId)) {
             throw new IllegalArgumentException("Usluga sa ID-em " + serviceId + " ne pripada salonu sa ID-em " + salonId);
         }
 
         // ✅ Brišemo uslugu iz liste usluga u salonu
-        salon.getServices().remove(service);
-        serviceRepository.delete(service);
+        salon.getServices().remove(serviceInSalon);
+        serviceRepository.delete(serviceInSalon);
 
-        return "Usluga '" + service.getNazivUsluge() + "' (ID: " + serviceId + ") uspješno obrisana iz salona '" + salon.getName() + "'!";
+        return "Usluga '" + serviceInSalon.getNazivUsluge() + "' (ID: " + serviceId + ") uspješno obrisana iz salona '" + salon.getName() + "'!";
     }
 }
