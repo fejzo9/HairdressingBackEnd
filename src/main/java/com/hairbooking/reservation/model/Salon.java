@@ -52,8 +52,8 @@ public class Salon {
 
     // Usluge salona
     @OneToMany(mappedBy = "salon", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JsonIgnore // Sprječava vraćanje cijelog salona u Service JSON-u
-    private List<Service> services = new ArrayList<>();
+    @JsonIgnore // Sprječava vraćanje cijelog salona u ServiceInSalon JSON-u
+    private List<ServiceInSalon> serviceInSalons = new ArrayList<>();
 
     // Constructors
     public Salon() {}
@@ -184,11 +184,11 @@ public class Salon {
 
     public void setImageTypes(List<String> imageTypes) { this.imageTypes = imageTypes; }
 
-    public List<Service> getServices() {
-        return services;
+    public List<ServiceInSalon> getServices() {
+        return serviceInSalons;
     }
 
-    public void setServices(List<Service> services) {
-        this.services = services;
+    public void setServices(List<ServiceInSalon> serviceInSalons) {
+        this.serviceInSalons = serviceInSalons;
     }
 }
