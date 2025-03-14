@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Entity
 @Table(name = "services")
-public class Service {
+public class ServiceInSalon {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +24,7 @@ public class Service {
 
     @ManyToOne
     @JoinColumn(name = "salon_id", nullable = false)
-    @JsonIgnore // Spriječava vraćanje cijelog objekta Salon unutar Service
+    @JsonIgnore // Spriječava vraćanje cijelog objekta Salon unutar ServiceInSalon
     private Salon salon;
 
     // GETTERI & SETTERI
