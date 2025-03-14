@@ -1,7 +1,7 @@
 package com.hairbooking.reservation.dto;
 
 import com.hairbooking.reservation.model.Salon;
-import com.hairbooking.reservation.model.Service;
+import com.hairbooking.reservation.model.ServiceInSalon;
 
 import java.math.BigDecimal;
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -36,21 +36,21 @@ public class ServiceDTO {
         this.cijenaUsluge = cijenaUsluge;
     }
 
-    public ServiceDTO(Service service) {
-        this.id = service.getId();
-        this.nazivUsluge = service.getNazivUsluge();
-        this.trajanjeUsluge = service.getTrajanjeUsluge();
-        this.cijenaUsluge = service.getCijenaUsluge();
-        this.salonId = service.getSalon().getId();
+    public ServiceDTO(ServiceInSalon serviceInSalon) {
+        this.id = serviceInSalon.getId();
+        this.nazivUsluge = serviceInSalon.getNazivUsluge();
+        this.trajanjeUsluge = serviceInSalon.getTrajanjeUsluge();
+        this.cijenaUsluge = serviceInSalon.getCijenaUsluge();
+        this.salonId = serviceInSalon.getSalon().getId();
     }
 
-    public Service toEntity(Salon salon) {
-        Service service = new Service();
-        service.setNazivUsluge(this.nazivUsluge);
-        service.setTrajanjeUsluge(this.trajanjeUsluge);
-        service.setCijenaUsluge(this.cijenaUsluge);
-        service.setSalon(salon);
-        return service;
+    public ServiceInSalon toEntity(Salon salon) {
+        ServiceInSalon serviceInSalon = new ServiceInSalon();
+        serviceInSalon.setNazivUsluge(this.nazivUsluge);
+        serviceInSalon.setTrajanjeUsluge(this.trajanjeUsluge);
+        serviceInSalon.setCijenaUsluge(this.cijenaUsluge);
+        serviceInSalon.setSalon(salon);
+        return serviceInSalon;
     }
 }
 
