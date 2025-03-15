@@ -79,6 +79,19 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.PUT, "/services/salon/{salonId}/{serviceId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.DELETE,  "/services/salon/{salonId}/{serviceId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
 
+                            // Endpoints for calendar
+                            .requestMatchers(HttpMethod.GET, "/calendars/hairdresser/**").permitAll()
+                            .requestMatchers(HttpMethod.POST, "/calendars/hairdresser/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.PUT, "/calendars/hairdresser/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/calendars/hairdresser/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+
+                            // Endpoints for appointment
+                            .requestMatchers(HttpMethod.POST, "/appointments/book").hasAnyRole("USER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.GET, "/appointments/calendar/**").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.GET, "/appointments/**").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.PUT, "/appointments/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/appointments/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+
                             // 🚫 Svi ostali zahtjevi zahtijevaju autentifikaciju
                             .anyRequest().authenticated()
                 )
