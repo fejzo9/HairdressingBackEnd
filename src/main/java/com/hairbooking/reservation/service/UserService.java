@@ -19,10 +19,12 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final CalendarService calendarService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, CalendarService calendarService) {
         this.userRepository = userRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
+        this.calendarService = calendarService;
     }
 
     public Optional<User> findById(Long id) {
@@ -246,4 +248,18 @@ public class UserService {
                 .orElse(null); // Ako korisnik nema sliku, vraća `null`
     }
 
+    @Transactional
+    public User registerHairdresser(User hairdresser) {
+        if (!Role.HAIRDRESSER.equals(hairdresser.getRole())) {
+            throw new IllegalArgumentException("Samo frizer može biti registrovan kao frizer!");
+        }
+
+        // ✔️ Spremamo frizera u bazu
+        User savedHairdresser = userRepository.save(hairdresser);
+
+        // ✔️ Automatski kreiramo kalendar za njega
+        calendarService.createCalendarForHairdresser(savedHairdresser.getId());
+
+        return savedHairdresser;
+    }
 }
