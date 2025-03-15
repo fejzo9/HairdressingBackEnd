@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 public class AppointmentService {
@@ -68,5 +69,38 @@ public class AppointmentService {
         appointment.setEndTime(endTime);
 
         return appointmentRepository.save(appointment);
+    }
+
+    @Transactional
+    public List<Appointment> getAppointmentsByCalendar(Long calendarId) {
+        return appointmentRepository.findByCalendarId(calendarId);
+    }
+
+    @Transactional
+    public Appointment getAppointmentById(Long appointmentId) {
+        return appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new EntityNotFoundException("Termin nije pronađen"));
+    }
+
+    @Transactional
+    public Appointment updateAppointment(Long appointmentId, LocalDate date, LocalTime startTime) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new EntityNotFoundException("Termin nije pronađen"));
+
+        LocalTime endTime = startTime.plusMinutes(appointment.getService().getTrajanjeUsluge());
+
+        appointment.setDate(date);
+        appointment.setStartTime(startTime);
+        appointment.setEndTime(endTime);
+
+        return appointmentRepository.save(appointment);
+    }
+
+    @Transactional
+    public void deleteAppointment(Long appointmentId) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new EntityNotFoundException("Termin nije pronađen"));
+
+        appointmentRepository.delete(appointment);
     }
 }
