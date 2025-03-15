@@ -51,5 +51,24 @@ public class CalendarService {
         return calendarRepository.findByHairdresserId(hairdresserId)
                 .orElseThrow(() -> new EntityNotFoundException("Kalendar nije pronađen za ovog frizera"));
     }
+
+    @Transactional
+    public Calendar updateCalendar(Long hairdresserId, Calendar updatedCalendar) {
+        Calendar existingCalendar = calendarRepository.findByHairdresserId(hairdresserId)
+                .orElseThrow(() -> new EntityNotFoundException("Kalendar nije pronađen za ovog frizera"));
+
+        // Postavljanje novih vrijednosti
+        existingCalendar.setAppointments(updatedCalendar.getAppointments());
+
+        return calendarRepository.save(existingCalendar);
+    }
+
+    @Transactional
+    public void deleteCalendar(Long hairdresserId) {
+        Calendar calendar = calendarRepository.findByHairdresserId(hairdresserId)
+                .orElseThrow(() -> new EntityNotFoundException("Kalendar nije pronađen za ovog frizera"));
+
+        calendarRepository.delete(calendar);
+    }
 }
 
