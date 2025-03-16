@@ -1,8 +1,10 @@
 package com.hairbooking.reservation.service;
 
+import com.hairbooking.reservation.dto.UserDTO;
 import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.repository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -41,7 +43,14 @@ public class UserService {
 
     @Transactional
     public Optional<User> getUserByUsername(String username) {
-        return userRepository.findByUsername(username);
+        Optional<User> userOptional = userRepository.findByUsernameWithCalendar(username);
+
+        userOptional.ifPresent(user -> {
+            System.out.println("🛠️ Učitani korisnik: " + user.getUsername());
+            System.out.println("📅 Calendar ID: " + (user.getCalendar() != null ? user.getCalendar().getId() : "Nema kalendara"));
+        });
+
+        return userOptional;
     }
 
     public Optional<User> getUserByIdOptional(Long id) {
@@ -50,6 +59,12 @@ public class UserService {
 
     public List<User> findUsersByIds(List<Long> ids) {
         return userRepository.findAllById(ids);
+    }
+
+    public UserDTO getUserDTOById(Long id) {
+        return userRepository.findById(id)
+                .map(UserDTO::new) // Mapiramo User -> UserDTO samo kada trebamo DTO verziju
+                .orElseThrow(() -> new EntityNotFoundException("Korisnik nije pronađen"));
     }
 
     public User createUser(User user) {
