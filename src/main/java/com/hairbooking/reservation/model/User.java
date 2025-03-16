@@ -46,6 +46,7 @@ public class User {
     private Role role;
 
     @Lob  // 👈 Dodaje polje u bazi koje će čuvati binarne podatke (slike)
+    @JsonIgnore
     private byte[] profilePicture;
 
     @Column(name = "profile_picture_type")
@@ -56,6 +57,21 @@ public class User {
     private Calendar calendar;
 
     public User() {
+    }
+
+    public User(String firstName, String lastName, String email, String username, String password, String gender, String phoneNumber, LocalDate birthDate, Role role, String profilePictureType, byte[] profilePicture, Calendar calendar) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.username = username;
+        this.password = password;
+        this.gender = gender;
+        this.phoneNumber = phoneNumber;
+        this.birthDate = birthDate;
+        this.role = role;
+        this.profilePictureType = profilePictureType;
+        this.profilePicture = profilePicture;
+        this.calendar = calendar;
     }
 
     public User(String firstName, String lastName, String email){
@@ -206,6 +222,14 @@ public class User {
 
     public void setProfilePictureType(String profilePictureType) {
         this.profilePictureType = profilePictureType;
+    }
+
+    public Calendar getCalendar() {
+        return calendar;
+    }
+
+    public void setCalendar(Calendar calendar) {
+        this.calendar = calendar;
     }
 
     @Override
