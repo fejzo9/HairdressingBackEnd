@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.controller;
 
+import com.hairbooking.reservation.dto.CalendarDTO;
 import com.hairbooking.reservation.model.Calendar;
 import com.hairbooking.reservation.service.CalendarService;
 import jakarta.persistence.EntityNotFoundException;
@@ -26,19 +27,19 @@ public class CalendarController {
     }
 
     @GetMapping("/hairdresser/{hairdresserId}")
-    public ResponseEntity<?> getCalendar(@PathVariable Long hairdresserId) {
+    public ResponseEntity<CalendarDTO> getCalendar(@PathVariable Long hairdresserId) {
         System.out.println("🔎 Pozvan endpoint za dohvaćanje kalendara frizera ID: " + hairdresserId);
 
         try {
-            Calendar calendar = calendarService.getCalendarByHairdresser(hairdresserId);
+            CalendarDTO calendar = calendarService.getCalendarByHairdresser(hairdresserId);
             System.out.println("✅ Uspješno dohvaćen kalendar: " + calendar.getId());
             return ResponseEntity.ok(calendar);
         } catch (EntityNotFoundException e) {
             System.out.println("❌ Greška: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage()); // 404 Not Found umjesto 403
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null); // 404 Not Found umjesto 403
         } catch (Exception e) {
             System.out.println("❌ Neočekivana greška: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Došlo je do greške.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
