@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.service;
 
+import com.hairbooking.reservation.dto.CalendarDTO;
 import com.hairbooking.reservation.model.Calendar;
 import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.User;
@@ -46,7 +47,7 @@ public class CalendarService {
     }
 
     @Transactional
-    public Calendar getCalendarByHairdresser(Long hairdresserId) {
+    public CalendarDTO getCalendarByHairdresser(Long hairdresserId) {
         User hairdresser = userRepository.findById(hairdresserId)
                 .orElseThrow(() -> new EntityNotFoundException("Frizer nije pronađen"));
 
@@ -56,7 +57,7 @@ public class CalendarService {
         // ✔️ Forsiramo učitavanje liste termina (Lazy Loading fix)
         calendar.getAppointments().size();
 
-        return calendar;
+        return new CalendarDTO(calendar); // Vraćamo DTO umjesto entiteta
     }
 
     @Transactional
