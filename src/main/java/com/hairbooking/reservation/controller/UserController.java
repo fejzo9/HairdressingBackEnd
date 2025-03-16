@@ -77,7 +77,7 @@ public class UserController {
 
     // Dohvati korisnike po ulozi
     @GetMapping("/role/{role}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'OWNER')")
     public ResponseEntity<List<User>> getUsersByRole(@PathVariable Role role) {
         return ResponseEntity.ok(userService.getUsersByRole(role));
     }

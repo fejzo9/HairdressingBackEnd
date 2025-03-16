@@ -38,7 +38,7 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.GET, "/users/*/profile-picture").permitAll()
                             .requestMatchers(HttpMethod.GET, "/users/*").permitAll()
                             .requestMatchers(HttpMethod.GET, "/users/username/*").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/users/role/*").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.GET, "/users/role/*").hasAnyRole("ADMIN", "SUPER_ADMIN", "OWNER")
                             .requestMatchers(HttpMethod.POST, "/users/*/upload-profile-picture").hasAnyRole("USER", "OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.PUT, "/users/**").permitAll()
 
