@@ -53,7 +53,6 @@ public class User {
     private String profilePictureType; // "image/png" ili "image/jpeg"
 
     @OneToOne(mappedBy = "hairdresser", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonIgnore
     private Calendar calendar;
 
     public User() {
