@@ -16,10 +16,10 @@ public class Calendar {
 
     @OneToOne
     @JoinColumn(name = "hairdresser_id", nullable = false)
+    @JsonIgnore
     private User hairdresser; // Svaki kalendar pripada jednom frizeru
 
     @OneToMany(mappedBy = "calendar", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    @JsonIgnore
     private List<Appointment> appointments = new ArrayList<>();
 
     //Constructors
