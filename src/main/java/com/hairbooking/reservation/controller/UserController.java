@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.controller;
 
+import com.hairbooking.reservation.dto.UserDTO;
 import com.hairbooking.reservation.model.ChangePasswordRequest;
 import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.User;
@@ -31,8 +32,8 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        User user = userService.getUserById(id);
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+        UserDTO user = userService.getUserDTOById(id);
         if (user != null) {
             return ResponseEntity.ok(user);
         }
@@ -43,7 +44,8 @@ public class UserController {
     public ResponseEntity<?> getUserByUsername(@PathVariable String username){
         Optional<User> userOptional = userService.getUserByUsername(username);
         if (userOptional.isPresent()) {
-            return ResponseEntity.ok(userOptional.get());
+            UserDTO userDTO = new UserDTO(userOptional.get()); // Mapiranje u DTO
+            return ResponseEntity.ok(userDTO);
         } else {
         return ResponseEntity.notFound().build();
         }
