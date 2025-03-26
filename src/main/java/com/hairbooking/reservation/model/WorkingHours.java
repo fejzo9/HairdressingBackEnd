@@ -22,6 +22,8 @@ public class WorkingHours {
     private LocalTime startTime;
     private LocalTime endTime;
     private boolean isDayOff;
+    private LocalTime breakStart;
+    private LocalTime breakEnd;
 
     public WorkingHours() {
 
@@ -74,5 +76,9 @@ public class WorkingHours {
     public void setDayOff(boolean dayOff) {
         isDayOff = dayOff;
     }
+    public LocalTime getBreakStart() { return breakStart; }
+    public void setBreakStart(LocalTime breakStart) { this.breakStart = breakStart; }
+    public LocalTime getBreakEnd() { return breakEnd; }
+    public void setBreakEnd(LocalTime breakEnd) { this.breakEnd = breakEnd; }
 
 }
