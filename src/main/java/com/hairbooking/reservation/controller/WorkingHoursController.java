@@ -3,10 +3,12 @@ package com.hairbooking.reservation.controller;
 import com.hairbooking.reservation.model.WorkingHours;
 import com.hairbooking.reservation.service.WorkingHoursService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.DayOfWeek;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,5 +56,22 @@ public class WorkingHoursController {
     public ResponseEntity<Void> deleteWorkingHours(@PathVariable Long id) {
         workingHoursService.deleteWorkingHours(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/set-break")
+    public ResponseEntity<WorkingHours> setBreak(
+            @PathVariable Long id,
+            @RequestParam  DayOfWeek day,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime breakStart,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.TIME) LocalTime breakEnd
+    ) {
+        WorkingHours updated = workingHoursService.setBreakForDay(id, day, breakStart, breakEnd);
+        return ResponseEntity.ok(updated);
+    }
+
+    @PatchMapping("/{id}/remove-break")
+    public ResponseEntity<WorkingHours> removeBreak(@PathVariable Long id, @RequestParam  DayOfWeek day) {
+        WorkingHours updated = workingHoursService.removeBreakForDay(id, day);
+        return ResponseEntity.ok(updated);
     }
 }
