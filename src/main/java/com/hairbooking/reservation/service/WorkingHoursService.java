@@ -41,6 +41,13 @@ public class WorkingHoursService {
         User hairdresser = userRepository.findById(hairdresserId)
                 .orElseThrow(() -> new IllegalArgumentException("Frizer nije pronađen"));
         workingHours.setHairdresser(hairdresser);
+
+        // 🛠️ Ako je neradni dan, ne treba postavljati početak i kraj smjene
+        if (workingHours.isDayOff()) {
+            workingHours.setStartTime(null);
+            workingHours.setEndTime(null);
+        }
+
         return workingHoursRepository.save(workingHours);
     }
 
@@ -50,6 +57,12 @@ public class WorkingHoursService {
 
         for (WorkingHours wh : workingHoursList) {
             wh.setHairdresser(hairdresser); // Postavi frizera za svaki dan
+
+            // 🛠️ Ako je neradni dan, ne treba postavljati početak i kraj smjene
+            if (wh.isDayOff()) {
+                wh.setStartTime(null);
+                wh.setEndTime(null);
+            }
         }
 
         return workingHoursRepository.saveAll(workingHoursList);
@@ -63,6 +76,11 @@ public class WorkingHoursService {
         existing.setDayOfWeek(updated.getDayOfWeek());
         existing.setStartTime(updated.getStartTime());
         existing.setEndTime(updated.getEndTime());
+
+        if(updated.isDayOff()){
+            existing.setStartTime(null);
+            existing.setEndTime(null);
+        }
         return workingHoursRepository.save(existing);
     }
 
