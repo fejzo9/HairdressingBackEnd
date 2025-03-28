@@ -44,6 +44,18 @@ public class WorkingHoursService {
         return workingHoursRepository.save(workingHours);
     }
 
+    public List<WorkingHours> createListOfWorkingHours(Long hairdresserId, List<WorkingHours> workingHoursList) {
+        User hairdresser = userRepository.findById(hairdresserId)
+                .orElseThrow(() -> new EntityNotFoundException("Frizer nije pronađen"));
+
+        for (WorkingHours wh : workingHoursList) {
+            wh.setHairdresser(hairdresser); // Postavi frizera za svaki dan
+        }
+
+        return workingHoursRepository.saveAll(workingHoursList);
+    }
+
+
     public WorkingHours updateWorkingHours(Long id, WorkingHours updated) {
         WorkingHours existing = workingHoursRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Radno vrijeme nije pronađeno"));
