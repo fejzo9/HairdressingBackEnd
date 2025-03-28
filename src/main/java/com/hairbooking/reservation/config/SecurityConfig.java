@@ -94,7 +94,8 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.DELETE, "/appointments/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
 
                             // Endpointi za working-hours
-                            .requestMatchers(HttpMethod.POST, "/working-hours/hairdresser/{hairdresserId}").hasAnyRole("OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.POST, "/working-hours/hairdresser/day/{hairdresserId}").hasAnyRole("OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.POST, "/working-hours/hairdresser/{hairdresserId}/weekly").hasAnyRole("OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.GET, "/working-hours/hairdresser/{hairdresserId}").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.GET, "/working-hours/hairdresser/{hairdresserId}/day/{day}").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.PUT, "/working-hours/{id}").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
