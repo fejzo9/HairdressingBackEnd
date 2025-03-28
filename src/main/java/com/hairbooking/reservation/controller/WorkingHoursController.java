@@ -44,6 +44,16 @@ public class WorkingHoursController {
         return ResponseEntity.ok(saved);
     }
 
+    @PostMapping("/hairdresser/{hairdresserId}/weekly")
+    public ResponseEntity<?> createListOfWorkingHours(
+            @PathVariable Long hairdresserId,
+            @RequestBody List<WorkingHours> workingHoursList
+    ) {
+        List<WorkingHours> created = workingHoursService.createListOfWorkingHours(hairdresserId, workingHoursList);
+        return ResponseEntity.ok(created);
+    }
+
+
     @PutMapping("/{id}")
     public ResponseEntity<WorkingHours> updateWorkingHours(
             @PathVariable Long id,
