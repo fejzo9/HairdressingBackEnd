@@ -45,6 +45,7 @@ public class User {
     private Role role;
 
     @Lob  // 👈 Dodaje polje u bazi koje će čuvati binarne podatke (slike)
+    @Basic(fetch = FetchType.LAZY)
     @JsonIgnore
     private byte[] profilePicture;
 
