@@ -38,7 +38,7 @@ public class WorkingHoursController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/hairdresser/{hairdresserId}")
+    @PostMapping("/hairdresser/day/{hairdresserId}")
     public ResponseEntity<WorkingHours> createWorkingHours(@PathVariable Long hairdresserId, @RequestBody WorkingHours workingHours) {
         WorkingHours saved = workingHoursService.createWorkingHours(hairdresserId, workingHours);
         return ResponseEntity.ok(saved);
