@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Table;
 import jakarta.persistence.*;
 
@@ -14,7 +15,7 @@ public class WorkingHours {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hairdresser_id", nullable = false)
     private User hairdresser;
 
@@ -73,9 +74,12 @@ public class WorkingHours {
     public boolean isDayOff() {
         return isDayOff;
     }
+
+    @JsonProperty("isDayOff")
     public void setDayOff(boolean dayOff) {
-        isDayOff = dayOff;
+        this.isDayOff = dayOff;
     }
+
     public LocalTime getBreakStart() { return breakStart; }
     public void setBreakStart(LocalTime breakStart) { this.breakStart = breakStart; }
     public LocalTime getBreakEnd() { return breakEnd; }
