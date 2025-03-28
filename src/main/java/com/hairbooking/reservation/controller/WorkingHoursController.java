@@ -1,5 +1,6 @@
 package com.hairbooking.reservation.controller;
 
+import com.hairbooking.reservation.dto.WorkingHoursDTO;
 import com.hairbooking.reservation.model.WorkingHours;
 import com.hairbooking.reservation.service.WorkingHoursService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/working-hours")
@@ -24,9 +26,12 @@ public class WorkingHoursController {
     }
 
     @GetMapping("/hairdresser/{hairdresserId}")
-    public ResponseEntity<List<WorkingHours>> getWorkingHoursByHairdresser(@PathVariable Long hairdresserId) {
+    public ResponseEntity<List<WorkingHoursDTO>> getWorkingHoursByHairdresser(@PathVariable Long hairdresserId) {
         List<WorkingHours> workingHours = workingHoursService.getWorkingHoursByHairdresserId(hairdresserId);
-        return ResponseEntity.ok(workingHours);
+        List<WorkingHoursDTO> doList = workingHours.stream()
+                .map(WorkingHoursDTO::new)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(doList);
     }
 
     @GetMapping("/hairdresser/{hairdresserId}/day/{day}")
@@ -41,6 +46,11 @@ public class WorkingHoursController {
     @PostMapping("/hairdresser/day/{hairdresserId}")
     public ResponseEntity<WorkingHours> createWorkingHours(@PathVariable Long hairdresserId, @RequestBody WorkingHours workingHours) {
         WorkingHours saved = workingHoursService.createWorkingHours(hairdresserId, workingHours);
+        System.out.println("🔍 Primljeni podaci: dayOfWeek = " + workingHours.getDayOfWeek() +
+                ", isDayOff = " + workingHours.isDayOff() +
+                ", start = " + workingHours.getStartTime() +
+                ", end = " + workingHours.getEndTime());
+
         return ResponseEntity.ok(saved);
     }
 
