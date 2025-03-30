@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/working-hours")
+@CrossOrigin
 public class WorkingHoursController {
 
     private final WorkingHoursService workingHoursService;
