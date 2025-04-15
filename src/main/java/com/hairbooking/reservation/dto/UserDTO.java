@@ -9,6 +9,7 @@ public class UserDTO {
     private String lastName;
     private String email;
     private String username;
+    private String phoneNumber;
     private Role role;
     private Long calendarId; // Dodajemo samo ako je korisnik frizer
 
@@ -19,6 +20,7 @@ public class UserDTO {
         this.lastName = user.getLastName();
         this.email = user.getEmail();
         this.username = user.getUsername();
+        this.phoneNumber = user.getPhoneNumber();
         this.role = user.getRole();
 
         // 🔎 Provjera kalendara prije dodjele vrijednosti
@@ -39,6 +41,7 @@ public class UserDTO {
     public String getUsername() { return username; }
     public Role getRole() { return role; }
     public Long getCalendarId() { return calendarId; }
+    public String getPhoneNumber() { return phoneNumber; }
 
 }
 
