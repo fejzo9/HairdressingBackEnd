@@ -31,11 +31,7 @@ public class Salon {
     private String email;
 
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "salons_employees",
-            joinColumns = @JoinColumn(name = "salon_salon_id"),
-            inverseJoinColumns = @JoinColumn(name = "employees_user_id")
-    )
+    @JoinTable(name = "salons_employees", joinColumns = @JoinColumn(name = "salon_salon_id"), inverseJoinColumns = @JoinColumn(name = "employees_user_id"))
     private List<User> employees;
 
     // Lista slika kao binarni podaci
@@ -55,8 +51,31 @@ public class Salon {
     @JsonIgnore // Sprječava vraćanje cijelog salona u ServiceInSalon JSON-u
     private List<ServiceInSalon> serviceInSalons = new ArrayList<>();
 
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
     // Constructors
-    public Salon() {}
+    public Salon() {
+    }
 
     public Salon(User owner, String name, String address, String phoneNumber, String email, List<User> employees) {
         this.owner = owner;
@@ -88,7 +107,7 @@ public class Salon {
         this.email = email;
     }
 
-    public Salon(String name, String address, String phoneNumber, String email){
+    public Salon(String name, String address, String phoneNumber, String email) {
         this.name = name;
         this.address = address;
         this.phoneNumber = phoneNumber;
@@ -96,7 +115,8 @@ public class Salon {
     }
 
     // ✅ KONSTRUKTOR BEZ SLIKA
-    public Salon(String name, String address, String phoneNumber, String email, User owner, List<User> employees) {
+    public Salon(String name, String address, String phoneNumber, String email, User owner, List<User> employees,
+            Double latitude, Double longitude) {
         this.name = name;
         this.address = address;
         this.phoneNumber = phoneNumber;
@@ -105,10 +125,13 @@ public class Salon {
         this.employees = employees != null ? employees : new ArrayList<>();
         this.images = new ArrayList<>();
         this.imageTypes = new ArrayList<>();
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     // ✅ KONSTRUKTOR SA SLIKAMA
-    public Salon(String name, String address, String phoneNumber, String email, User owner, List<User> employees, List<byte[]> images, List<String> imageTypes) {
+    public Salon(String name, String address, String phoneNumber, String email, User owner, List<User> employees,
+            List<byte[]> images, List<String> imageTypes, Double latitude, Double longitude) {
         this.name = name;
         this.address = address;
         this.phoneNumber = phoneNumber;
@@ -116,6 +139,9 @@ public class Salon {
         this.owner = owner;
         this.employees = employees != null ? employees : new ArrayList<>();
         this.images = images != null ? images : new ArrayList<>();
+        this.imageTypes = imageTypes != null ? imageTypes : new ArrayList<>();
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     // GETTER and SETTERS
@@ -176,13 +202,21 @@ public class Salon {
         this.employees = employees;
     }
 
-    public List<byte[]> getImages() { return images;}
+    public List<byte[]> getImages() {
+        return images;
+    }
 
-    public void setImages(List<byte[]> images) { this.images = images; }
+    public void setImages(List<byte[]> images) {
+        this.images = images;
+    }
 
-    public List<String> getImageTypes() { return imageTypes; }
+    public List<String> getImageTypes() {
+        return imageTypes;
+    }
 
-    public void setImageTypes(List<String> imageTypes) { this.imageTypes = imageTypes; }
+    public void setImageTypes(List<String> imageTypes) {
+        this.imageTypes = imageTypes;
+    }
 
     public List<ServiceInSalon> getServices() {
         return serviceInSalons;
