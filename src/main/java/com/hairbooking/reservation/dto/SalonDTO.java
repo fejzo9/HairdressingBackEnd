@@ -22,10 +22,12 @@ public class SalonDTO {
     private String ownerEmail;
     private String ownerPhoneNumber;
     private String ownerUsername;
+    private Double latitude;
+    private Double longitude;
 
     public SalonDTO(Long id, String name, String address, String phoneNumber, String email, List<String> employeeNames,
-                    Long ownerId, String ownerFirstName, String ownerLastName, String ownerBirthDate,
-                    String ownerEmail, String ownerPhoneNumber, String ownerUsername) {
+            Long ownerId, String ownerFirstName, String ownerLastName, String ownerBirthDate,
+            String ownerEmail, String ownerPhoneNumber, String ownerUsername, Double latitude, Double longitude) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -39,6 +41,8 @@ public class SalonDTO {
         this.ownerEmail = ownerEmail;
         this.ownerPhoneNumber = ownerPhoneNumber;
         this.ownerUsername = ownerUsername;
+        this.latitude = latitude;
+        this.longitude = longitude;
     }
 
     public SalonDTO(Salon salon) {
@@ -49,6 +53,8 @@ public class SalonDTO {
         this.employeeNames = salon.getEmployees() != null
                 ? salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList())
                 : List.of();
+        this.latitude = salon.getLatitude();
+        this.longitude = salon.getLongitude();
 
         if (Hibernate.isInitialized(salon.getOwner())) { // ✅ Provjera da li je učitan
             User owner = salon.getOwner();
@@ -71,42 +77,123 @@ public class SalonDTO {
     }
 
     // GETTERI & SETTERI
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public Long getId() {
+        return id;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
+    public String getName() {
+        return name;
+    }
 
-    public String getPhoneNumber() { return phoneNumber; }
-    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public String getAddress() {
+        return address;
+    }
 
-    public List<String> getEmployeeNames() { return employeeNames; }
-    public void setEmployeeNames(List<String> employeeNames) { this.employeeNames = employeeNames; }
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
-    public Long getOwnerId() { return ownerId; }
-    public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
 
-    public String getOwnerFirstName() { return ownerFirstName; }
-    public void setOwnerFirstName(String ownerFirstName) { this.ownerFirstName = ownerFirstName; }
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
 
-    public String getOwnerLastName() { return ownerLastName; }
-    public void setOwnerLastName(String ownerLastName) { this.ownerLastName = ownerLastName; }
+    public String getEmail() {
+        return email;
+    }
 
-    public String getOwnerBirthDate() { return ownerBirthDate; }
-    public void setOwnerBirthDate(String ownerBirthDate) { this.ownerBirthDate = ownerBirthDate; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public String getOwnerEmail() { return ownerEmail; }
-    public void setOwnerEmail(String ownerEmail) { this.ownerEmail = ownerEmail; }
+    public List<String> getEmployeeNames() {
+        return employeeNames;
+    }
 
-    public String getOwnerPhoneNumber() { return ownerPhoneNumber; }
-    public void setOwnerPhoneNumber(String ownerPhoneNumber) { this.ownerPhoneNumber = ownerPhoneNumber; }
+    public void setEmployeeNames(List<String> employeeNames) {
+        this.employeeNames = employeeNames;
+    }
 
-    public String getOwnerUsername() { return ownerUsername; }
-    public void setOwnerUsername(String ownerUsername) { this.ownerUsername = ownerUsername; }
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public String getOwnerFirstName() {
+        return ownerFirstName;
+    }
+
+    public void setOwnerFirstName(String ownerFirstName) {
+        this.ownerFirstName = ownerFirstName;
+    }
+
+    public String getOwnerLastName() {
+        return ownerLastName;
+    }
+
+    public void setOwnerLastName(String ownerLastName) {
+        this.ownerLastName = ownerLastName;
+    }
+
+    public String getOwnerBirthDate() {
+        return ownerBirthDate;
+    }
+
+    public void setOwnerBirthDate(String ownerBirthDate) {
+        this.ownerBirthDate = ownerBirthDate;
+    }
+
+    public String getOwnerEmail() {
+        return ownerEmail;
+    }
+
+    public void setOwnerEmail(String ownerEmail) {
+        this.ownerEmail = ownerEmail;
+    }
+
+    public String getOwnerPhoneNumber() {
+        return ownerPhoneNumber;
+    }
+
+    public void setOwnerPhoneNumber(String ownerPhoneNumber) {
+        this.ownerPhoneNumber = ownerPhoneNumber;
+    }
+
+    public String getOwnerUsername() {
+        return ownerUsername;
+    }
+
+    public void setOwnerUsername(String ownerUsername) {
+        this.ownerUsername = ownerUsername;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
 }
