@@ -49,23 +49,7 @@ public class SalonController {
             Salon salon = salonOptional.get();
             User owner = salon.getOwner(); // Dohvati vlasnika
 
-            SalonDTO salonDTO = new SalonDTO(
-                    salon.getId(),
-                    salon.getName(),
-                    salon.getAddress(),
-                    salon.getPhoneNumber(),
-                    salon.getEmail(),
-                    salon.getEmployees() != null
-                            ? salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList())
-                            : List.of(), // Ako nema zaposlenih, vrati praznu listu
-                    owner != null ? owner.getId() : null, // ID vlasnika
-                    owner != null ? owner.getFirstName() : "N/A", // Ime vlasnika
-                    owner != null ? owner.getLastName() : "N/A", // Prezime vlasnika
-                    owner != null ? String.valueOf(owner.getBirthDate()) : "N/A", // Datum rođenja vlasnika
-                    owner != null ? owner.getEmail() : "N/A", // Email vlasnika
-                    owner != null ? owner.getPhoneNumber() : "N/A", // Broj telefona vlasnika
-                    owner != null ? owner.getUsername() : "N/A" // Username vlasnika
-            );
+            SalonDTO salonDTO = new SalonDTO(salon);
 
             System.out.println("Salon pronađen: " + salon.getName());
             return ResponseEntity.ok(salonDTO);
@@ -84,6 +68,8 @@ public class SalonController {
             newSalon.setAddress(request.getAddress());
             newSalon.setPhoneNumber(request.getPhoneNumber());
             newSalon.setEmail(request.getEmail());
+            newSalon.setLatitude(request.getLatitude());
+            newSalon.setLongitude(request.getLongitude());
 
             Salon savedSalon = salonService.createSalon(newSalon, request.getOwnerUsername());
             return ResponseEntity.ok(savedSalon);
@@ -147,25 +133,9 @@ public class SalonController {
         salonService.saveSalon(salon); // ✅ Sačuvaj izmjene
 
         // ✅ Kreiraj DTO odgovor
-        SalonDTO salonDTO = new SalonDTO(
-                salon.getId(),
-                salon.getName(),
-                salon.getAddress(),
-                salon.getPhoneNumber(),
-                salon.getEmail(),
-                salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList()),
-                salon.getOwner().getId(),
-                salon.getOwner().getFirstName(),
-                salon.getOwner().getLastName(),
-                salon.getOwner().getBirthDate() != null ? salon.getOwner().getBirthDate().toString() : "N/A",
-                salon.getOwner().getEmail(),
-                salon.getOwner().getPhoneNumber(),
-                salon.getOwner().getUsername()
-        );
-
+        SalonDTO salonDTO = new SalonDTO(salon);
         return ResponseEntity.ok(salonDTO);
     }
-
 
     @PutMapping("/{id}/employees")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
@@ -180,22 +150,7 @@ public class SalonController {
             salonService.saveSalon(salon); // ✅ Sačuvaj promjene u bazi
 
             // ✅ Kreiraj DTO odgovor
-            SalonDTO salonDTO = new SalonDTO(
-                    salon.getId(),
-                    salon.getName(),
-                    salon.getAddress(),
-                    salon.getPhoneNumber(),
-                    salon.getEmail(),
-                    salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList()),
-                    salon.getOwner().getId(),
-                    salon.getOwner().getFirstName(),
-                    salon.getOwner().getLastName(),
-                    String.valueOf(salon.getOwner().getBirthDate()),
-                    salon.getOwner().getEmail(),
-                    salon.getOwner().getPhoneNumber(),
-                    salon.getOwner().getUsername()
-            );
-
+            SalonDTO salonDTO = new SalonDTO(salon);
             return ResponseEntity.ok(salonDTO);
         }
         return ResponseEntity.notFound().build();
@@ -255,7 +210,8 @@ public class SalonController {
     // ✅ Upload slika u salon
     @PostMapping("/{id}/upload-images")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<String> uploadSalonImages(@PathVariable Long id, @RequestParam("files") List<MultipartFile> files) {
+    public ResponseEntity<String> uploadSalonImages(@PathVariable Long id,
+            @RequestParam("files") List<MultipartFile> files) {
         boolean success = salonService.addImagesToSalon(id, files);
 
         if (success) {
@@ -277,8 +233,8 @@ public class SalonController {
 
                 for (int i = 0; i < salon.getImages().size(); i++) {
                     Map<String, String> imageMap = new HashMap<>();
-                    imageMap.put("imageData", Base64.getEncoder().encodeToString(salon.getImages().get(i))); // ✅ Enkodiraj u Base64
-                    imageMap.put("contentType", salon.getImageTypes().get(i)); // ✅ Dodaj format slike (jpeg/png)
+                    imageMap.put("imageData", Base64.getEncoder().encodeToString(salon.getImages().get(i)));
+                    imageMap.put("contentType", salon.getImageTypes().get(i));
                     imageList.add(imageMap);
                 }
 
@@ -326,7 +282,8 @@ public class SalonController {
     // ✅ Ažuriranje slike u salonu
     @PutMapping("/{salonId}/images/{imageIndex}")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<String> updateSalonImage(@PathVariable Long salonId, @PathVariable int imageIndex, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> updateSalonImage(@PathVariable Long salonId, @PathVariable int imageIndex,
+            @RequestParam("file") MultipartFile file) {
         boolean success = salonService.updateSalonImage(salonId, imageIndex, file);
 
         if (success) {
@@ -342,7 +299,8 @@ public class SalonController {
         // ✅ Umjesto @AuthenticationPrincipal, koristimo SecurityContextHolder
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof String)) {
+        if (authentication == null || !authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof String)) {
             System.out.println("❌ Autentifikacija nije uspjela! authentication = " + authentication);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Neuspješna autentifikacija.");
         }
