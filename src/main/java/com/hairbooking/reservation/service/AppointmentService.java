@@ -1,7 +1,9 @@
 package com.hairbooking.reservation.service;
 
 import com.hairbooking.reservation.model.Appointment;
+import com.hairbooking.reservation.model.AppointmentStatus;
 import com.hairbooking.reservation.model.Calendar;
+import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.ServiceInSalon;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.repository.AppointmentRepository;
@@ -11,14 +13,19 @@ import com.hairbooking.reservation.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
 @Service
 public class AppointmentService {
+
+    private static final long CANCELLATION_WINDOW_HOURS = 24;
 
     private final AppointmentRepository appointmentRepository;
     private final CalendarRepository calendarRepository;
@@ -97,10 +104,88 @@ public class AppointmentService {
     }
 
     @Transactional
-    public void deleteAppointment(Long appointmentId) {
+    public void deleteAppointment(Long appointmentId, String username) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new EntityNotFoundException("Termin nije pronađen"));
 
+        checkAuthorization(appointment, username);
+
         appointmentRepository.delete(appointment);
+    }
+
+    @Transactional
+    public Appointment cancelAppointment(Long appointmentId, String reason, String username) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found"));
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Appointment is already cancelled");
+        }
+
+        checkAuthorization(appointment, username);
+        checkNotWithinCancellationWindow(appointment);
+
+        appointment.setStatus(AppointmentStatus.CANCELLED);
+        appointment.setCancellationReason(reason);
+        appointment.setCancelledAt(LocalDateTime.now());
+        appointment.setCancelledBy(username);
+
+        return appointmentRepository.save(appointment);
+    }
+
+    @Transactional
+    public Appointment rescheduleAppointment(Long appointmentId, LocalDate newDate, LocalTime newStartTime, String username) {
+        Appointment appointment = appointmentRepository.findById(appointmentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found"));
+
+        if (appointment.getStatus() == AppointmentStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Cannot reschedule a cancelled appointment");
+        }
+
+        checkAuthorization(appointment, username);
+        checkNotWithinCancellationWindow(appointment);
+
+        if (newDate == null || newStartTime == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New date and start time are required");
+        }
+
+        LocalTime newEndTime = newStartTime.plusMinutes(appointment.getService().getTrajanjeUsluge());
+
+        boolean isOverlapping = appointmentRepository.existsOverlappingAppointmentExcluding(
+                appointment.getCalendar().getId(), newDate, newStartTime, newEndTime, appointmentId);
+
+        if (isOverlapping) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "The requested time slot is already booked");
+        }
+
+        appointment.setDate(newDate);
+        appointment.setStartTime(newStartTime);
+        appointment.setEndTime(newEndTime);
+        appointment.setStatus(AppointmentStatus.RESCHEDULED);
+
+        return appointmentRepository.save(appointment);
+    }
+
+    private void checkAuthorization(Appointment appointment, String username) {
+        User caller = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not found"));
+
+        boolean isCustomer = appointment.getCustomer().getUsername().equals(username);
+        boolean isHairdresser = appointment.getCalendar().getHairdresser().getUsername().equals(username);
+        boolean isPrivileged = caller.getRole() == Role.ADMIN
+                || caller.getRole() == Role.SUPER_ADMIN
+                || caller.getRole() == Role.OWNER;
+
+        if (!isCustomer && !isHairdresser && !isPrivileged) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "You are not authorized to modify this appointment");
+        }
+    }
+
+    private void checkNotWithinCancellationWindow(Appointment appointment) {
+        LocalDateTime appointmentDateTime = LocalDateTime.of(appointment.getDate(), appointment.getStartTime());
+        if (LocalDateTime.now().plusHours(CANCELLATION_WINDOW_HOURS).isAfter(appointmentDateTime)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Cannot cancel or reschedule within " + CANCELLATION_WINDOW_HOURS + " hours of the appointment");
+        }
     }
 }
