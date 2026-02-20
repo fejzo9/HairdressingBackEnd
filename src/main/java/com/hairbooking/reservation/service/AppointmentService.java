@@ -1,20 +1,32 @@
 package com.hairbooking.reservation.service;
 
+import com.hairbooking.reservation.dto.AppointmentHistoryDTO;
 import com.hairbooking.reservation.model.Appointment;
+import com.hairbooking.reservation.model.AppointmentStatus;
 import com.hairbooking.reservation.model.Calendar;
 import com.hairbooking.reservation.model.ServiceInSalon;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.repository.AppointmentRepository;
+import com.hairbooking.reservation.repository.AppointmentSpecification;
 import com.hairbooking.reservation.repository.CalendarRepository;
 import com.hairbooking.reservation.repository.ServiceRepository;
 import com.hairbooking.reservation.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -67,6 +79,7 @@ public class AppointmentService {
         appointment.setDate(date);
         appointment.setStartTime(startTime);
         appointment.setEndTime(endTime);
+        appointment.setCreatedAt(java.time.LocalDateTime.now());
 
         return appointmentRepository.save(appointment);
     }
@@ -102,5 +115,74 @@ public class AppointmentService {
                 .orElseThrow(() -> new EntityNotFoundException("Termin nije pronađen"));
 
         appointmentRepository.delete(appointment);
+    }
+
+    @Transactional
+    public Page<AppointmentHistoryDTO> getUserAppointments(Long userId, String status, int page, int size, String sort) {
+        // Enforce max page size
+        size = Math.min(size, 50);
+
+        // Authorization check
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = auth.getName();
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+
+        if (!isAdmin) {
+            User currentUser = userRepository.findByUsername(currentUsername)
+                    .orElseThrow(() -> new EntityNotFoundException("Korisnik nije pronađen"));
+            if (!currentUser.getId().equals(userId)) {
+                throw new AccessDeniedException("Pristup nije dozvoljen");
+            }
+        }
+
+        // Verify user exists
+        if (!userRepository.existsById(userId)) {
+            throw new EntityNotFoundException("Korisnik nije pronađen");
+        }
+
+        // Build sort
+        Sort sortOrder = buildSort(sort);
+        Pageable pageable = PageRequest.of(page, size, sortOrder);
+
+        // Build specification
+        Specification<Appointment> spec = Specification.where(AppointmentSpecification.hasCustomerId(userId));
+
+        if (status != null && !status.isBlank()) {
+            List<String> filters = Arrays.asList(status.split(","));
+            Specification<Appointment> statusSpec = null;
+            LocalDate today = LocalDate.now();
+
+            for (String filter : filters) {
+                Specification<Appointment> filterSpec = switch (filter.trim().toLowerCase()) {
+                    case "upcoming" -> AppointmentSpecification.isUpcoming(today);
+                    case "past" -> AppointmentSpecification.isPast(today);
+                    case "cancelled" -> AppointmentSpecification.isCancelled();
+                    default -> throw new IllegalArgumentException("Nevalidan status filter: " + filter.trim());
+                };
+                statusSpec = (statusSpec == null) ? filterSpec : statusSpec.or(filterSpec);
+            }
+
+            spec = spec.and(statusSpec);
+        }
+
+        return appointmentRepository.findAll(spec, pageable)
+                .map(AppointmentHistoryDTO::new);
+    }
+
+    private Sort buildSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return Sort.by(Sort.Direction.DESC, "date");
+        }
+        boolean descending = sort.startsWith("-");
+        String field = descending ? sort.substring(1) : sort;
+        Sort.Direction direction = descending ? Sort.Direction.DESC : Sort.Direction.ASC;
+
+        return switch (field.toLowerCase()) {
+            case "date" -> Sort.by(direction, "date");
+            case "salon" -> Sort.by(direction, "service.salon.name");
+            case "status" -> Sort.by(direction, "status");
+            default -> Sort.by(Sort.Direction.DESC, "date");
+        };
     }
 }

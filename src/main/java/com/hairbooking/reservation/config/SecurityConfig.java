@@ -36,6 +36,7 @@ public class SecurityConfig {
 
                             // Endpoint za dohvatanje i dodavanje profilne slike sa /users endpointa
                             .requestMatchers(HttpMethod.GET, "/users/*/profile-picture").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/users/*/appointments").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.GET, "/users/*").permitAll()
                             .requestMatchers(HttpMethod.POST, "/users").permitAll()
                             .requestMatchers(HttpMethod.GET, "/users/username/*").permitAll()
