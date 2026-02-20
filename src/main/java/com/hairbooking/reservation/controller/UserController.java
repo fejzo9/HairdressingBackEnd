@@ -1,10 +1,13 @@
 package com.hairbooking.reservation.controller;
 
+import com.hairbooking.reservation.dto.AppointmentHistoryDTO;
 import com.hairbooking.reservation.dto.UserDTO;
 import com.hairbooking.reservation.model.ChangePasswordRequest;
 import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.User;
+import com.hairbooking.reservation.service.AppointmentService;
 import com.hairbooking.reservation.service.UserService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,9 +24,11 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final AppointmentService appointmentService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, AppointmentService appointmentService) {
         this.userService = userService;
+        this.appointmentService = appointmentService;
     }
 
     @GetMapping
@@ -94,6 +99,26 @@ public class UserController {
         }
     }
 
+    // ✅ Verify email address using token
+    @GetMapping("/verify")
+    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
+        boolean verified = userService.verifyEmail(token);
+        if (verified) {
+            return ResponseEntity.ok("Email verified successfully!");
+        }
+        return ResponseEntity.badRequest().body("Invalid or expired verification token.");
+    }
+
+    // ✅ Resend verification email
+    @PostMapping("/resend-verification-email")
+    public ResponseEntity<String> resendVerificationEmail(@RequestParam("email") String email) {
+        boolean sent = userService.resendVerificationEmail(email);
+        if (sent) {
+            return ResponseEntity.ok("Verification email sent. Check your inbox.");
+        }
+        return ResponseEntity.badRequest().body("Email not found or already verified.");
+    }
+
     // ✅ Upload slike
     @PostMapping("/{id}/upload-profile-picture")
     @PreAuthorize("hasRole('USER') or hasRole('OWNER') or hasRole('HAIRDRESSER') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
@@ -131,4 +156,17 @@ public class UserController {
         System.out.println("❌ Profilna slika NIJE pronađena za korisnika: " + id);
         return ResponseEntity.notFound().build();
     }
+
+    // ✅ GET - Dohvatanje historije termina korisnika
+    @GetMapping("/{userId}/appointments")
+    public ResponseEntity<Page<AppointmentHistoryDTO>> getUserAppointments(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort) {
+        Page<AppointmentHistoryDTO> appointments = appointmentService.getUserAppointments(userId, status, page, size, sort);
+        return ResponseEntity.ok(appointments);
+    }
 }
+

@@ -43,6 +43,10 @@ public class LoginController {
             }
         }
 
+        if (user != null && !user.isEmailVerified()) {
+            return ResponseEntity.status(403).body("Please verify your email first");
+        }
+
         String token;
         Role role;
         String username;
