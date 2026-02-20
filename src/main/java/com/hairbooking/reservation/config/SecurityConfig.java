@@ -90,8 +90,10 @@ public class SecurityConfig {
                             .requestMatchers(HttpMethod.POST, "/appointments/book").hasAnyRole("USER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.GET, "/appointments/calendar/**").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.GET, "/appointments/**").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.POST, "/appointments/*/cancel").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.PATCH, "/appointments/*/reschedule").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
                             .requestMatchers(HttpMethod.PUT, "/appointments/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/appointments/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                            .requestMatchers(HttpMethod.DELETE, "/appointments/**").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
 
                             // Endpointi za working-hours
                             .requestMatchers(HttpMethod.POST, "/working-hours/hairdresser/day/{hairdresserId}").hasAnyRole("OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
