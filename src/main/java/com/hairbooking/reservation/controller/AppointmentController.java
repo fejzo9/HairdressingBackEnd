@@ -1,8 +1,10 @@
 package com.hairbooking.reservation.controller;
 
+import com.hairbooking.reservation.dto.AppointmentHistoryDTO;
 import com.hairbooking.reservation.model.Appointment;
 import com.hairbooking.reservation.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -65,4 +67,5 @@ public class AppointmentController {
         return ResponseEntity.noContent().build();
     }
 }
+
 

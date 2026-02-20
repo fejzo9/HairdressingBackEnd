@@ -1,10 +1,13 @@
 package com.hairbooking.reservation.controller;
 
+import com.hairbooking.reservation.dto.AppointmentHistoryDTO;
 import com.hairbooking.reservation.dto.UserDTO;
 import com.hairbooking.reservation.model.ChangePasswordRequest;
 import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.User;
+import com.hairbooking.reservation.service.AppointmentService;
 import com.hairbooking.reservation.service.UserService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,9 +24,11 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final AppointmentService appointmentService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, AppointmentService appointmentService) {
         this.userService = userService;
+        this.appointmentService = appointmentService;
     }
 
     @GetMapping
@@ -110,7 +115,7 @@ public class UserController {
         }
     }
 
-    // ✅ Dohvatanje slike korisnika
+    // ✅ Dohvatanje profilne slike korisnika
     @GetMapping("/{id}/profile-picture")
     public ResponseEntity<byte[]> getProfilePicture(@PathVariable Long id) {
         System.out.println("🔍 Pokušaj dohvatanja profilne slike za korisnika sa ID: " + id);
@@ -130,5 +135,17 @@ public class UserController {
 
         System.out.println("❌ Profilna slika NIJE pronađena za korisnika: " + id);
         return ResponseEntity.notFound().build();
+    }
+
+    // ✅ GET - Dohvatanje historije termina korisnika
+    @GetMapping("/{userId}/appointments")
+    public ResponseEntity<Page<AppointmentHistoryDTO>> getUserAppointments(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String sort) {
+        Page<AppointmentHistoryDTO> appointments = appointmentService.getUserAppointments(userId, status, page, size, sort);
+        return ResponseEntity.ok(appointments);
     }
 }
