@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
@@ -51,6 +52,15 @@ public class User {
 
     @Column(name = "profile_picture_type")
     private String profilePictureType; // "image/png" ili "image/jpeg"
+
+    @Column(nullable = false)
+    private boolean emailVerified = false;
+
+    @Column(name = "verification_token")
+    private String verificationToken;
+
+    @Column(name = "token_expiration_time")
+    private LocalDateTime tokenExpirationTime;
 
     @OneToOne(mappedBy = "hairdresser", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JsonIgnore
@@ -230,6 +240,30 @@ public class User {
 
     public void setCalendar(Calendar calendar) {
         this.calendar = calendar;
+    }
+
+    public boolean isEmailVerified() {
+        return emailVerified;
+    }
+
+    public void setEmailVerified(boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
+
+    public String getVerificationToken() {
+        return verificationToken;
+    }
+
+    public void setVerificationToken(String verificationToken) {
+        this.verificationToken = verificationToken;
+    }
+
+    public LocalDateTime getTokenExpirationTime() {
+        return tokenExpirationTime;
+    }
+
+    public void setTokenExpirationTime(LocalDateTime tokenExpirationTime) {
+        this.tokenExpirationTime = tokenExpirationTime;
     }
 
     @Override

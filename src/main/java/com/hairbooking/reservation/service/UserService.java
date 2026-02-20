@@ -11,10 +11,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -22,11 +24,13 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final CalendarService calendarService;
+    private final EmailService emailService;
 
-    public UserService(UserRepository userRepository, CalendarService calendarService) {
+    public UserService(UserRepository userRepository, CalendarService calendarService, EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
         this.calendarService = calendarService;
+        this.emailService = emailService;
     }
 
     public Optional<User> findById(Long id) {
@@ -123,7 +127,21 @@ public class UserService {
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        return userRepository.save(user);
+        String token = UUID.randomUUID().toString();
+        user.setVerificationToken(token);
+        user.setTokenExpirationTime(LocalDateTime.now().plusHours(24));
+        user.setEmailVerified(false);
+
+        User savedUser = userRepository.save(user);
+
+        try {
+            emailService.sendVerificationEmail(savedUser.getEmail(), token);
+        } catch (Exception e) {
+            // Log but do not fail registration if email sending fails
+            System.err.println("Failed to send verification email to " + savedUser.getEmail() + ": " + e.getMessage());
+        }
+
+        return savedUser;
     }
 
     @Transactional
@@ -261,6 +279,54 @@ public class UserService {
         return userRepository.findById(userId)
                 .map(User::getProfilePicture)
                 .orElse(null); // Ako korisnik nema sliku, vraća `null`
+    }
+
+    @Transactional
+    public boolean verifyEmail(String token) {
+        Optional<User> userOptional = userRepository.findByVerificationToken(token);
+
+        if (userOptional.isEmpty()) {
+            return false;
+        }
+
+        User user = userOptional.get();
+
+        if (user.getTokenExpirationTime() == null || LocalDateTime.now().isAfter(user.getTokenExpirationTime())) {
+            return false;
+        }
+
+        user.setEmailVerified(true);
+        user.setVerificationToken(null);
+        user.setTokenExpirationTime(null);
+        userRepository.save(user);
+        return true;
+    }
+
+    @Transactional
+    public boolean resendVerificationEmail(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isEmpty()) {
+            return false;
+        }
+
+        User user = userOptional.get();
+
+        if (user.isEmailVerified()) {
+            return false;
+        }
+
+        String token = UUID.randomUUID().toString();
+        user.setVerificationToken(token);
+        user.setTokenExpirationTime(LocalDateTime.now().plusHours(24));
+        userRepository.save(user);
+
+        try {
+            emailService.sendVerificationEmail(user.getEmail(), token);
+        } catch (Exception e) {
+            System.err.println("Failed to send verification email to " + user.getEmail() + ": " + e.getMessage());
+        }
+        return true;
     }
 
     @Transactional
