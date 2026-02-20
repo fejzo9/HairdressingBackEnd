@@ -17,6 +17,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @EntityGraph(attributePaths = {"calendar"})
     Optional<User> findByUsername(String username);
     Optional<User> findByEmail(String email);
+    Optional<User> findByVerificationToken(String verificationToken);
     List<User> findAllByRole(Role role);
     @Query("SELECT u FROM User u LEFT JOIN FETCH u.calendar WHERE u.username = :username")
     Optional<User> findByUsernameWithCalendar(@Param("username") String username);

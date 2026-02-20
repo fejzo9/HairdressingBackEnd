@@ -94,6 +94,26 @@ public class UserController {
         }
     }
 
+    // ✅ Verify email address using token
+    @PostMapping("/verify")
+    public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
+        boolean verified = userService.verifyEmail(token);
+        if (verified) {
+            return ResponseEntity.ok("Email verified successfully!");
+        }
+        return ResponseEntity.badRequest().body("Invalid or expired verification token.");
+    }
+
+    // ✅ Resend verification email
+    @PostMapping("/resend-verification-email")
+    public ResponseEntity<String> resendVerificationEmail(@RequestParam("email") String email) {
+        boolean sent = userService.resendVerificationEmail(email);
+        if (sent) {
+            return ResponseEntity.ok("Verification email sent. Check your inbox.");
+        }
+        return ResponseEntity.badRequest().body("Email not found or already verified.");
+    }
+
     // ✅ Upload slike
     @PostMapping("/{id}/upload-profile-picture")
     @PreAuthorize("hasRole('USER') or hasRole('OWNER') or hasRole('HAIRDRESSER') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
