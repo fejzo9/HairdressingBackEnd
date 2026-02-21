@@ -5,9 +5,7 @@ import com.hairbooking.reservation.model.ChangePasswordRequest;
 import com.hairbooking.reservation.model.Role;
 import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.UserService;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -41,13 +39,13 @@ public class UserController {
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<?> getUserByUsername(@PathVariable String username){
+    public ResponseEntity<?> getUserByUsername(@PathVariable String username) {
         Optional<User> userOptional = userService.getUserByUsername(username);
         if (userOptional.isPresent()) {
-            UserDTO userDTO = new UserDTO(userOptional.get()); // Mapiranje u DTO
+            UserDTO userDTO = new UserDTO(userOptional.get());
             return ResponseEntity.ok(userDTO);
         } else {
-        return ResponseEntity.notFound().build();
+            return ResponseEntity.notFound().build();
         }
     }
 
@@ -57,7 +55,6 @@ public class UserController {
         return userService.createUser(user);
     }
 
-    // 🔐 Omogućava samo ADMINIMA da mijenjaju korisnike
     @PutMapping("/{id}")
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User updatedUser) {
         User user = userService.updateUser(id, updatedUser);
@@ -67,7 +64,6 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
-    // 🔐 Omogućava samo ADMINIMA da brišu korisnike
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
@@ -85,7 +81,8 @@ public class UserController {
     // Promjena lozinke korisnika
     @PostMapping("/change-password")
     public ResponseEntity<String> changePassword(@RequestBody ChangePasswordRequest request) {
-        boolean isChanged = userService.changePassword(request.getUsername(), request.getOldPassword(), request.getNewPassword());
+        boolean isChanged = userService.changePassword(request.getUsername(), request.getOldPassword(),
+                request.getNewPassword());
 
         if (isChanged) {
             return ResponseEntity.ok("Lozinka uspješno promijenjena!");
@@ -94,41 +91,31 @@ public class UserController {
         }
     }
 
-    // ✅ Upload slike
+    // ✅ Upload profilne slike — čuva fajl na disk, vraća path
     @PostMapping("/{id}/upload-profile-picture")
-    @PreAuthorize("hasRole('USER') or hasRole('OWNER') or hasRole('HAIRDRESSER') or hasRole('ADMIN') or hasRole('SUPER_ADMIN')")
-    public ResponseEntity<String> uploadProfilePicture(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
-
+    @PreAuthorize("hasAnyRole('USER', 'OWNER', 'HAIRDRESSER', 'ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<String> uploadProfilePicture(@PathVariable Long id,
+            @RequestParam("file") MultipartFile file) {
         System.out.println("Primljen fajl: " + file.getOriginalFilename());
 
-        boolean success = userService.uploadProfilePicture(id, file);
+        String path = userService.uploadProfilePicture(id, file);
 
-        if (success) {
-            return ResponseEntity.status(HttpStatus.CREATED).body("Profilna slika uspjesno dodana!");
+        if (path != null) {
+            return ResponseEntity.status(HttpStatus.CREATED).body(path);
         } else {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Greška pri uploadu slike!");
         }
     }
 
-    // ✅ Dohvatanje slike korisnika
-    @GetMapping("/{id}/profile-picture")
-    public ResponseEntity<byte[]> getProfilePicture(@PathVariable Long id) {
-        System.out.println("🔍 Pokušaj dohvatanja profilne slike za korisnika sa ID: " + id);
+    // ✅ Dohvatanje path-a profilne slike korisnika
+    @GetMapping("/{id}/profile-picture-path")
+    public ResponseEntity<String> getProfilePicturePath(@PathVariable Long id) {
+        String path = userService.getProfilePicturePath(id);
 
-        Optional<User> userOptional = userService.getUserByIdOptional(id);
-
-        if (userOptional.isPresent() && userOptional.get().getProfilePicture() != null) {
-            System.out.println("✅ Profilna slika pronađena za korisnika: " + id);
-            byte[] imageBytes = userOptional.get().getProfilePicture();
-            String contentType = userOptional.get().getProfilePictureType();
-
-            // Postavljanje odgovarajućeg content-type headera
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.parseMediaType(contentType)); // Može biti IMAGE_JPEG ako koristiš jpg slike
-            return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
+        if (path != null) {
+            return ResponseEntity.ok(path);
         }
 
-        System.out.println("❌ Profilna slika NIJE pronađena za korisnika: " + id);
         return ResponseEntity.notFound().build();
     }
 }

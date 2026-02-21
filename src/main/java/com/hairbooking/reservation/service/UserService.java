@@ -6,15 +6,20 @@ import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -22,6 +27,9 @@ public class UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final CalendarService calendarService;
+
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
 
     public UserService(UserRepository userRepository, CalendarService calendarService) {
         this.userRepository = userRepository;
@@ -47,7 +55,8 @@ public class UserService {
 
         userOptional.ifPresent(user -> {
             System.out.println("🛠️ Učitani korisnik: " + user.getUsername());
-            System.out.println("📅 Calendar ID: " + (user.getCalendar() != null ? user.getCalendar().getId() : "Nema kalendara"));
+            System.out.println(
+                    "📅 Calendar ID: " + (user.getCalendar() != null ? user.getCalendar().getId() : "Nema kalendara"));
         });
 
         return userOptional;
@@ -63,7 +72,7 @@ public class UserService {
 
     public UserDTO getUserDTOById(Long id) {
         return userRepository.findById(id)
-                .map(UserDTO::new) // Mapiramo User -> UserDTO samo kada trebamo DTO verziju
+                .map(UserDTO::new)
                 .orElseThrow(() -> new EntityNotFoundException("Korisnik nije pronađen"));
     }
 
@@ -73,7 +82,7 @@ public class UserService {
         if (user.getFirstName() == null || user.getLastName() == null ||
                 user.getEmail() == null || user.getUsername() == null ||
                 user.getPassword() == null || user.getBirthDate() == null ||
-                user.getGender() == null || user.getPhoneNumber() == null ){
+                user.getGender() == null || user.getPhoneNumber() == null) {
             throw new IllegalArgumentException("All fields are required!");
         }
 
@@ -98,19 +107,19 @@ public class UserService {
         try {
             String formattedDate = user.getBirthDate().format(formatter);
             String formattedDate2 = user.getBirthDate().format(formatter2);
-            if (!formattedDate.matches("^\\d{2}/\\d{2}/\\d{4}$") || !formattedDate2.matches("^\\d{2}.\\d{2}.\\d{4}$") ) {
+            if (!formattedDate.matches("^\\d{2}/\\d{2}/\\d{4}$") || !formattedDate2.matches("^\\d{2}.\\d{2}.\\d{4}$")) {
                 throw new IllegalArgumentException("Invalid date format! Use dd-MM-yyyy.");
             }
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("Invalid date format! Use dd-MM-yyyy.");
         }
 
-        //Provjera da li korisnik sa istim e-mailom ili korisničkim imenom već postoji
+        // Provjera da li korisnik sa istim e-mailom ili korisničkim imenom već postoji
         if (userRepository.findByUsername(user.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Username already exists!");
         }
-        if (userRepository.findAll().stream().anyMatch(existingUser ->
-                existingUser.getEmail().equals(user.getEmail()))) {
+        if (userRepository.findAll().stream()
+                .anyMatch(existingUser -> existingUser.getEmail().equals(user.getEmail()))) {
             throw new IllegalArgumentException("Email already exists!");
         }
 
@@ -120,7 +129,6 @@ public class UserService {
         }
 
         user.setRole(Role.USER);
-
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         return userRepository.save(user);
@@ -141,7 +149,6 @@ public class UserService {
             }
 
             if (updatedUser.getEmail() != null) {
-                // Provjera formata e-mail adrese
                 if (!updatedUser.getEmail().matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
                     throw new IllegalArgumentException("Invalid email format!");
                 }
@@ -156,12 +163,10 @@ public class UserService {
                 if (updatedUser.getPassword().length() < 8) {
                     throw new IllegalArgumentException("Password must be at least 8 characters long!");
                 }
-
                 user.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
-
             }
 
-            if (updatedUser.getPhoneNumber() != null && user.getPhoneNumber().matches("^\\+387(6\\d|3\\d)\\d{6,7}$")){
+            if (updatedUser.getPhoneNumber() != null && user.getPhoneNumber().matches("^\\+387(6\\d|3\\d)\\d{6,7}$")) {
                 user.setPhoneNumber(updatedUser.getPhoneNumber());
             }
 
@@ -183,7 +188,7 @@ public class UserService {
 
             if (updatedUser.getRole() != null) {
                 user.setRole(updatedUser.getRole());
-             }
+            }
 
             return userRepository.save(user);
         }
@@ -204,7 +209,6 @@ public class UserService {
                 .filter(u -> u.getEmail().equals(identifier))
                 .findFirst()
                 .orElse(null)));
-
     }
 
     // Verifikacija lozinke
@@ -225,42 +229,58 @@ public class UserService {
         if (userOptional.isPresent()) {
             User user = userOptional.get();
 
-            // 🔐 Provjera da li je unesena ispravna stara lozinka
             if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
-                return false; // ❌ Stara lozinka nije tačna
+                return false;
             }
 
-            // ✅ Hashiraj novu lozinku i sačuvaj
             user.setPassword(passwordEncoder.encode(newPassword));
             userRepository.save(user);
             return true;
         }
-        return false; // ❌ Korisnik nije pronađen
+        return false;
     }
 
-    // ✅ Metoda za dodavanje slike korisniku
-    public boolean uploadProfilePicture(Long userId, MultipartFile file) {
+    // ✅ Upload profilne slike — čuva fajl na disk, u bazi samo path
+    public String uploadProfilePicture(Long userId, MultipartFile file) {
         try {
             Optional<User> userOptional = userRepository.findById(userId);
 
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
-                user.setProfilePicture(file.getBytes()); // 🔹 Čuva binarne podatke slike, čuva sliku kao byte[]
-                user.setProfilePictureType(file.getContentType()); // Čuva tip slike (image/png, image/jpeg itd.)
+
+                // Kreiramo direktorij ako ne postoji
+                Path profileDir = Paths.get(uploadDir, "profile");
+                Files.createDirectories(profileDir);
+
+                // Generišemo jedinstveno ime fajla
+                String originalFilename = file.getOriginalFilename();
+                String extension = (originalFilename != null && originalFilename.contains("."))
+                        ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                        : ".jpg";
+                String filename = "user_" + userId + "_" + UUID.randomUUID().toString().substring(0, 8) + extension;
+
+                // Snimamo fajl na disk
+                Path filePath = profileDir.resolve(filename);
+                Files.write(filePath, file.getBytes());
+
+                // Čuvamo relativni path u bazi
+                String relativePath = "/uploads/profile/" + filename;
+                user.setProfilePicturePath(relativePath);
                 userRepository.save(user);
-                return true;
+
+                return relativePath;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return false;
+        return null;
     }
 
-    // ✅ Metoda za preuzimanje slike korisnika
-    public byte[] getProfilePicture(Long userId) {
+    // ✅ Dohvati path profilne slike korisnika
+    public String getProfilePicturePath(Long userId) {
         return userRepository.findById(userId)
-                .map(User::getProfilePicture)
-                .orElse(null); // Ako korisnik nema sliku, vraća `null`
+                .map(User::getProfilePicturePath)
+                .orElse(null);
     }
 
     @Transactional
@@ -269,10 +289,7 @@ public class UserService {
             throw new IllegalArgumentException("Samo frizer može biti registrovan kao frizer!");
         }
 
-        // ✔️ Spremamo frizera u bazu
         User savedHairdresser = userRepository.save(hairdresser);
-
-        // ✔️ Automatski kreiramo kalendar za njega
         calendarService.createCalendarForHairdresser(savedHairdresser.getId());
 
         return savedHairdresser;

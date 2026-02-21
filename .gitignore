@@ -38,3 +38,5 @@ out/
 
 ### Uploads - slike korisnika i salona (ne čuvati u git) ###
 uploads/
+src/main/java/com/hairbooking/reservation/config/DataInitializer.java
+migrate_remove_binary_images.sql

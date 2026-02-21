@@ -1,21 +1,24 @@
 package com.hairbooking.reservation.service;
 
 import com.hairbooking.reservation.dto.SalonDTO;
-import com.hairbooking.reservation.dto.SalonImageDTO;
 import com.hairbooking.reservation.model.Salon;
 import com.hairbooking.reservation.repository.SalonRepository;
 import com.hairbooking.reservation.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.hairbooking.reservation.model.User;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +27,9 @@ public class SalonService {
     private final SalonRepository salonRepository;
     private final UserRepository userRepository;
 
+    @Value("${app.upload.dir:uploads}")
+    private String uploadDir;
+
     public SalonService(SalonRepository salonRepository, UserRepository userRepository) {
         this.salonRepository = salonRepository;
         this.userRepository = userRepository;
@@ -31,17 +37,16 @@ public class SalonService {
 
     @Transactional
     public List<SalonDTO> getAllSalons() {
-        return salonRepository.findAll().stream().map(salon -> {
-            User owner = salon.getOwner();
-            return new SalonDTO(salon);
-        }).collect(Collectors.toList());
+        return salonRepository.findAll().stream()
+                .map(SalonDTO::new)
+                .collect(Collectors.toList());
     }
 
     @Transactional
     public Optional<Salon> getSalonById(Long id) {
         Optional<Salon> salonOptional = salonRepository.findById(id);
         salonOptional.ifPresent(salon -> {
-            salon.getEmployees().size(); // Prisilno učitavanje zaposlenih (Lazy Loading)
+            salon.getEmployees().size();
             salon.getServices().size();
         });
         return salonOptional;
@@ -50,36 +55,24 @@ public class SalonService {
     @Transactional
     public Optional<Salon> getEmployeesForSalon(Long salonId) {
         Optional<Salon> salonOptional = salonRepository.findById(salonId);
-        salonOptional.ifPresent(salon -> {
-            salon.getEmployees().size(); // Prisilno učitavanje zaposlenih (Lazy Loading)
-        });
+        salonOptional.ifPresent(salon -> salon.getEmployees().size());
         return salonOptional;
     }
 
     @Transactional
     public Optional<Salon> getServicesForSalon(Long salonId) {
         Optional<Salon> salonOptional = salonRepository.findById(salonId);
-        salonOptional.ifPresent(salon -> {
-            salon.getServices().size(); // Prisilno učitavanje usluga (Lazy Loading)
-        });
+        salonOptional.ifPresent(salon -> salon.getServices().size());
         return salonOptional;
     }
 
     @Transactional
     public Salon createSalon(Salon salon, String ownerUsername) {
-        // 🔹 Pronađi vlasnika po username-u
         User owner = userRepository.findByUsername(ownerUsername)
                 .orElseThrow(() -> new IllegalArgumentException(
                         "❌ Vlasnik sa username-om '" + ownerUsername + "' nije pronađen!"));
 
-        if (owner == null) {
-            throw new IllegalArgumentException("❌ Vlasnik sa username-om '" + ownerUsername + "' nije pronađen!");
-        }
-
-        // 🔹 Postavi vlasnika salonu
         salon.setOwner(owner);
-
-        // 🔹 Sačuvaj salon u bazi
         return salonRepository.save(salon);
     }
 
@@ -96,71 +89,77 @@ public class SalonService {
         }).orElse(null);
     }
 
-    // Čuvanje salona
     @Transactional
     public Salon saveSalon(Salon salon) {
         return salonRepository.save(salon);
     }
 
-    // Brisanje salona
     public void deleteSalon(Long id) {
         salonRepository.deleteById(id);
     }
 
-    // Dodavanje slika u salon
-    public boolean addImagesToSalon(Long salonId, List<MultipartFile> files) {
+    // ✅ Dodavanje slika u salon — čuva fajlove na disk, u bazi samo path-ovi
+    public List<String> addImagesToSalon(Long salonId, List<MultipartFile> files) {
         Optional<Salon> salonOptional = salonRepository.findById(salonId);
+        List<String> savedPaths = new ArrayList<>();
 
         if (salonOptional.isPresent()) {
             Salon salon = salonOptional.get();
 
             try {
-                // ✅ Ako je lista `images` null, inicijalizuje je
-                if (salon.getImages() == null) {
-                    salon.setImages(new ArrayList<>());
-                }
-                if (salon.getImageTypes() == null) {
-                    salon.setImageTypes(new ArrayList<>());
-                }
+                Path salonDir = Paths.get(uploadDir, "salons", String.valueOf(salonId));
+                Files.createDirectories(salonDir);
+
                 for (MultipartFile file : files) {
-                    salon.getImages().add(file.getBytes());
-                    salon.getImageTypes().add(file.getContentType());
+                    String originalFilename = file.getOriginalFilename();
+                    String extension = (originalFilename != null && originalFilename.contains("."))
+                            ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                            : ".jpg";
+                    String filename = "salon_" + salonId + "_" + UUID.randomUUID().toString().substring(0, 8)
+                            + extension;
+
+                    Path filePath = salonDir.resolve(filename);
+                    Files.write(filePath, file.getBytes());
+
+                    String relativePath = "/uploads/salons/" + salonId + "/" + filename;
+                    salon.getImagePaths().add(relativePath);
+                    savedPaths.add(relativePath);
                 }
                 salonRepository.save(salon);
-                return true;
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        return false;
+        return savedPaths;
     }
 
-    // ✅ Dohvati slike salona
-    public List<SalonImageDTO> getSalonImages(Long salonId) {
-        Optional<Salon> salonOptional = salonRepository.findById(salonId);
-
-        if (salonOptional.isPresent()) {
-            Salon salon = salonOptional.get();
-            List<SalonImageDTO> images = new ArrayList<>();
-
-            for (int i = 0; i < salon.getImages().size(); i++) {
-                images.add(new SalonImageDTO(salon.getImages().get(i), salon.getImageTypes().get(i)));
-            }
-            return images;
-        }
-        return Collections.emptyList();
+    // ✅ Dohvati listu path-ova slika salona
+    public List<String> getSalonImagePaths(Long salonId) {
+        return salonRepository.findById(salonId)
+                .map(Salon::getImagePaths)
+                .orElse(new ArrayList<>());
     }
 
-    // ✅ Brisanje određene slike po indexu
+    // ✅ Brisanje određene slike po indexu — briše fajl s diska i path iz baze
     public boolean deleteSalonImage(Long salonId, int imageIndex) {
         Optional<Salon> salonOptional = salonRepository.findById(salonId);
 
         if (salonOptional.isPresent()) {
             Salon salon = salonOptional.get();
 
-            if (imageIndex >= 0 && imageIndex < salon.getImages().size()) {
-                salon.getImages().remove(imageIndex);
-                salon.getImageTypes().remove(imageIndex);
+            if (imageIndex >= 0 && imageIndex < salon.getImagePaths().size()) {
+                String imagePath = salon.getImagePaths().get(imageIndex);
+
+                // Pokušaj obrisati fajl s diska
+                try {
+                    // imagePath je npr. "/uploads/salons/1/salon_1_abc.jpg"
+                    Path filePath = Paths.get(uploadDir, imagePath.replace("/uploads/", ""));
+                    Files.deleteIfExists(filePath);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                salon.getImagePaths().remove(imageIndex);
                 salonRepository.save(salon);
                 return true;
             }
@@ -168,25 +167,44 @@ public class SalonService {
         return false;
     }
 
-    // ✅ Update određene slike
-    public boolean updateSalonImage(Long salonId, int imageIndex, MultipartFile newFile) {
+    // ✅ Ažuriranje slike po indexu — zamjena fajla na disku i path-a u bazi
+    public String updateSalonImage(Long salonId, int imageIndex, MultipartFile newFile) {
         Optional<Salon> salonOptional = salonRepository.findById(salonId);
 
         if (salonOptional.isPresent()) {
             Salon salon = salonOptional.get();
 
-            if (salon.getImages() != null && imageIndex >= 0 && imageIndex < salon.getImages().size()) {
+            if (salon.getImagePaths() != null && imageIndex >= 0 && imageIndex < salon.getImagePaths().size()) {
                 try {
-                    salon.getImages().set(imageIndex, newFile.getBytes());
-                    salon.getImageTypes().set(imageIndex, newFile.getContentType());
+                    // Obrišemo stari fajl
+                    String oldPath = salon.getImagePaths().get(imageIndex);
+                    Path oldFilePath = Paths.get(uploadDir, oldPath.replace("/uploads/", ""));
+                    Files.deleteIfExists(oldFilePath);
+
+                    // Snimimo novi fajl
+                    Path salonDir = Paths.get(uploadDir, "salons", String.valueOf(salonId));
+                    Files.createDirectories(salonDir);
+
+                    String originalFilename = newFile.getOriginalFilename();
+                    String extension = (originalFilename != null && originalFilename.contains("."))
+                            ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                            : ".jpg";
+                    String filename = "salon_" + salonId + "_" + UUID.randomUUID().toString().substring(0, 8)
+                            + extension;
+
+                    Path newFilePath = salonDir.resolve(filename);
+                    Files.write(newFilePath, newFile.getBytes());
+
+                    String newRelativePath = "/uploads/salons/" + salonId + "/" + filename;
+                    salon.getImagePaths().set(imageIndex, newRelativePath);
                     salonRepository.save(salon);
-                    return true;
+                    return newRelativePath;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
-        return false;
+        return null;
     }
 
     public List<Salon> getSalonByOwnerId(Long ownerId) {
@@ -196,9 +214,8 @@ public class SalonService {
     @Transactional
     public List<Salon> getSalonsByOwnerUsername(String username) {
         User owner = userRepository.findByUsername(username)
-                .orElseThrow(
-                        () -> new EntityNotFoundException("Vlasnik sa username-om " + username + " nije pronađen"));
-
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Vlasnik sa username-om " + username + " nije pronađen"));
         return salonRepository.findByOwnerId(owner.getId());
     }
 }

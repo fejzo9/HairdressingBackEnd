@@ -28,84 +28,109 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-            http
+        http
                 .csrf(AbstractHttpConfigurer::disable) // Privremeno isključivanje CSRF zaštite za testiranje
-                    .cors(Customizer.withDefaults())
-                    .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT - Bez sesija
-                    .authorizeHttpRequests(auth -> auth
+                .cors(Customizer.withDefaults())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT -
+                                                                                                              // Bez
+                                                                                                              // sesija
+                .authorizeHttpRequests(auth -> auth
 
-                            // Endpoint za dohvatanje i dodavanje profilne slike sa /users endpointa
-                            .requestMatchers(HttpMethod.GET, "/users/*/profile-picture").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/users/*").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/users").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/users/username/*").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/users/role/*").hasAnyRole("ADMIN", "SUPER_ADMIN", "OWNER")
-                            .requestMatchers(HttpMethod.POST, "/users/*/upload-profile-picture").hasAnyRole("USER", "OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/users/**").permitAll()
+                        // Endpoint za dohvatanje i dodavanje profilne slike sa /users endpointa
+                        .requestMatchers(HttpMethod.GET, "/users/*/profile-picture-path").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users/*").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users/username/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/users/role/*").hasAnyRole("ADMIN", "SUPER_ADMIN", "OWNER")
+                        .requestMatchers(HttpMethod.POST, "/users/*/upload-profile-picture")
+                        .hasAnyRole("USER", "OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/users/**").permitAll()
 
-                            // Endpoint za promjenu passworda korisnika
-                            .requestMatchers(HttpMethod.POST,"/users/change-password").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        // Endpoint za promjenu passworda korisnika
+                        .requestMatchers(HttpMethod.POST, "/users/change-password")
+                        .hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
 
-                            // 🔓 Endpointi dostupni svima (registracija i login)
-                            .requestMatchers("/registration/**", "/login/**").permitAll()
+                        // 🔓 Endpointi dostupni svima (registracija i login)
+                        .requestMatchers("/registration/**", "/login/**").permitAll()
 
-                            // 👤 Endpointi dostupni samo korisnicima sa ulogom USER
-                            .requestMatchers("/users/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        // 👤 Endpointi dostupni samo korisnicima sa ulogom USER
+                        .requestMatchers("/users/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
 
-                            // 🏛️ Endpointi dostupni samo SUPER ADMINIMA
-                            .requestMatchers("/admins/**").hasRole("SUPER_ADMIN")
+                        // 🏛️ Endpointi dostupni samo SUPER ADMINIMA
+                        .requestMatchers("/admins/**").hasRole("SUPER_ADMIN")
 
-                            // ✂️ Endpointi dostupni samo FRIZERIMA
-                            .requestMatchers("/hairdressers/**").hasRole("HAIRDRESSER")
+                        // ✂️ Endpointi dostupni samo FRIZERIMA
+                        .requestMatchers("/hairdressers/**").hasRole("HAIRDRESSER")
 
-                            // Endpointi dostupni samo VLASNICIMA salona
-                            .requestMatchers("/owners/**").hasRole("OWNER")
+                        // Endpointi dostupni samo VLASNICIMA salona
+                        .requestMatchers("/owners/**").hasRole("OWNER")
 
-                            // Endpoint /salons i pristup metodama
-                            .requestMatchers(HttpMethod.GET, "/salons/{id}/images").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/salons/{id}/images/{imageIndex}").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/salons/owner").hasRole("OWNER")
-                            .requestMatchers(HttpMethod.GET, "/salons/**").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/salons/{id}/upload-images").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.POST, "/salons/**").hasAnyRole( "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/salons/{salonId}/images/{imageIndex}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/salons/**").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/salons/{salonId}/employees/{employeeId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/salons/{salonId}/images/{imageIndex}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/salons/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        // Endpoint /salons i pristup metodama
+                        .requestMatchers(HttpMethod.GET, "/salons/{id}/images").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/salons/{id}/images/{imageIndex}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/salons/owner").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.GET, "/salons/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/salons/{id}/upload-images")
+                        .hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/salons/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/salons/{salonId}/images/{imageIndex}")
+                        .hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/salons/**").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/salons/{salonId}/employees/{employeeId}")
+                        .hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/salons/{salonId}/images/{imageIndex}")
+                        .hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/salons/**").hasAnyRole("ADMIN", "SUPER_ADMIN")
 
-                            // Endpoint /service i pristup metodama
-                            .requestMatchers(HttpMethod.GET, "/services/salon/{salonId}").permitAll() // Svi mogu vidjeti usluge
-                            .requestMatchers(HttpMethod.POST, "/services/salon/{salonId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/services/salon/{salonId}/{serviceId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.DELETE,  "/services/salon/{salonId}/{serviceId}").hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                        // Endpoint /service i pristup metodama
+                        .requestMatchers(HttpMethod.GET, "/services/salon/{salonId}").permitAll() // Svi mogu vidjeti
+                                                                                                  // usluge
+                        .requestMatchers(HttpMethod.POST, "/services/salon/{salonId}")
+                        .hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/services/salon/{salonId}/{serviceId}")
+                        .hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/services/salon/{salonId}/{serviceId}")
+                        .hasAnyRole("OWNER", "ADMIN", "SUPER_ADMIN")
 
-                            // Endpoints for calendar
-                            .requestMatchers(HttpMethod.GET, "/calendars/hairdresser/**").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/calendars/hairdresser/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/calendars/hairdresser/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/calendars/hairdresser/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        // Endpoints for calendar
+                        .requestMatchers(HttpMethod.GET, "/calendars/hairdresser/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/calendars/hairdresser/**")
+                        .hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/calendars/hairdresser/**")
+                        .hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/calendars/hairdresser/**")
+                        .hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
 
-                            // Endpoints for appointment
-                            .requestMatchers(HttpMethod.POST, "/appointments/book").hasAnyRole("USER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.GET, "/appointments/calendar/**").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.GET, "/appointments/**").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/appointments/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/appointments/**").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        // Endpoints for appointment
+                        .requestMatchers(HttpMethod.POST, "/appointments/book")
+                        .hasAnyRole("USER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/appointments/calendar/**")
+                        .hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/appointments/**")
+                        .hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/appointments/**")
+                        .hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/appointments/**")
+                        .hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
 
-                            // Endpointi za working-hours
-                            .requestMatchers(HttpMethod.POST, "/working-hours/hairdresser/day/{hairdresserId}").hasAnyRole("OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.POST, "/working-hours/hairdresser/{hairdresserId}/weekly").hasAnyRole("OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.GET, "/working-hours/hairdresser/{hairdresserId}").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.GET, "/working-hours/hairdresser/{hairdresserId}/day/{day}").hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.PUT, "/working-hours/{id}").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
-                            .requestMatchers(HttpMethod.DELETE, "/working-hours/{id}").hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        // Endpointi za working-hours
+                        .requestMatchers(HttpMethod.POST, "/working-hours/hairdresser/day/{hairdresserId}")
+                        .hasAnyRole("OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/working-hours/hairdresser/{hairdresserId}/weekly")
+                        .hasAnyRole("OWNER", "HAIRDRESSER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/working-hours/hairdresser/{hairdresserId}")
+                        .hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/working-hours/hairdresser/{hairdresserId}/day/{day}")
+                        .hasAnyRole("USER", "HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/working-hours/{id}")
+                        .hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/working-hours/{id}")
+                        .hasAnyRole("HAIRDRESSER", "OWNER", "ADMIN", "SUPER_ADMIN")
 
-                            // 🚫 Svi ostali zahtjevi zahtijevaju autentifikaciju
-                            .anyRequest().authenticated()
-                )
-                    // Dodajemo JWT filter ispred defaultnog filtera za autentifikaciju
-                    .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                        // 🚫 Svi ostali zahtjevi zahtijevaju autentifikaciju
+                        .anyRequest().authenticated())
+                // Dodajemo JWT filter ispred defaultnog filtera za autentifikaciju
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -115,7 +140,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+            throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 }

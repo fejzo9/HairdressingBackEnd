@@ -7,20 +7,15 @@ import com.hairbooking.reservation.model.User;
 import com.hairbooking.reservation.service.SalonService;
 import com.hairbooking.reservation.service.UserService;
 import jakarta.transaction.Transactional;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/salons")
@@ -47,10 +42,7 @@ public class SalonController {
 
         if (salonOptional.isPresent()) {
             Salon salon = salonOptional.get();
-            User owner = salon.getOwner(); // Dohvati vlasnika
-
             SalonDTO salonDTO = new SalonDTO(salon);
-
             System.out.println("Salon pronađen: " + salon.getName());
             return ResponseEntity.ok(salonDTO);
         } else {
@@ -97,7 +89,6 @@ public class SalonController {
             Salon salon = salonOptional.get();
             User employee = employeeOptional.get();
 
-            // ✅ Ako frizer nije već u salonu, dodaj ga
             if (!salon.getEmployees().contains(employee)) {
                 salon.getEmployees().add(employee);
                 salonService.saveSalon(salon);
@@ -119,22 +110,18 @@ public class SalonController {
         }
 
         Salon salon = salonOptional.get();
-        List<User> existingEmployees = salon.getEmployees(); // Trenutni frizeri u salonu
-        List<User> newEmployees = userService.findUsersByIds(employeeIds); // Novi frizeri iz request body-a
+        List<User> existingEmployees = salon.getEmployees();
+        List<User> newEmployees = userService.findUsersByIds(employeeIds);
 
-        // ✅ Dodaj nove frizere koji još nisu u listi
         for (User newEmployee : newEmployees) {
             if (!existingEmployees.contains(newEmployee)) {
                 existingEmployees.add(newEmployee);
             }
         }
         salon.setEmployees(existingEmployees);
+        salonService.saveSalon(salon);
 
-        salonService.saveSalon(salon); // ✅ Sačuvaj izmjene
-
-        // ✅ Kreiraj DTO odgovor
-        SalonDTO salonDTO = new SalonDTO(salon);
-        return ResponseEntity.ok(salonDTO);
+        return ResponseEntity.ok(new SalonDTO(salon));
     }
 
     @PutMapping("/{id}/employees")
@@ -145,18 +132,14 @@ public class SalonController {
 
         if (salonOptional.isPresent()) {
             Salon salon = salonOptional.get();
-            List<User> employees = userService.findUsersByIds(employeeIds); // ✅ Dohvati korisnike po ID-ju
+            List<User> employees = userService.findUsersByIds(employeeIds);
             salon.setEmployees(employees);
-            salonService.saveSalon(salon); // ✅ Sačuvaj promjene u bazi
-
-            // ✅ Kreiraj DTO odgovor
-            SalonDTO salonDTO = new SalonDTO(salon);
-            return ResponseEntity.ok(salonDTO);
+            salonService.saveSalon(salon);
+            return ResponseEntity.ok(new SalonDTO(salon));
         }
         return ResponseEntity.notFound().build();
     }
 
-    // Deleting Salon
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<Void> deleteSalon(@PathVariable Long id) {
@@ -164,7 +147,6 @@ public class SalonController {
         return ResponseEntity.noContent().build();
     }
 
-    // Deleting One Employee from Salon
     @DeleteMapping("/{salonId}/employees/{employeeId}")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<String> removeEmployeeFromSalon(@PathVariable Long salonId, @PathVariable Long employeeId) {
@@ -177,10 +159,9 @@ public class SalonController {
             Salon salon = salonOptional.get();
             User employee = employeeOptional.get();
 
-            // ✅ Provjera da li je zaposleni u salonu
             if (salon.getEmployees().contains(employee)) {
                 salon.getEmployees().remove(employee);
-                salonService.saveSalon(salon); // ✅ Sačuvaj promjene u bazi
+                salonService.saveSalon(salon);
                 return ResponseEntity.ok("Frizer uspješno uklonjen iz salona.");
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Frizer nije pronađen u ovom salonu.");
@@ -189,7 +170,6 @@ public class SalonController {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Salon ili frizer ne postoje.");
     }
 
-    // Deleting All Employees from Salon
     @DeleteMapping("/{id}/employees")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<String> removeAllEmployeesFromSalon(@PathVariable Long id) {
@@ -201,73 +181,33 @@ public class SalonController {
         }
 
         Salon salon = salonOptional.get();
-        salon.getEmployees().clear(); // Brišemo sve frizere
-        salonService.saveSalon(salon); // Čuvamo promjene
+        salon.getEmployees().clear();
+        salonService.saveSalon(salon);
 
         return ResponseEntity.ok("Svi zaposlenici su uspješno uklonjeni iz salona.");
     }
 
-    // ✅ Upload slika u salon
+    // ✅ Upload slika u salon — čuva fajlove na disk, vraća listu path-ova
     @PostMapping("/{id}/upload-images")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<String> uploadSalonImages(@PathVariable Long id,
+    public ResponseEntity<?> uploadSalonImages(@PathVariable Long id,
             @RequestParam("files") List<MultipartFile> files) {
-        boolean success = salonService.addImagesToSalon(id, files);
+        List<String> savedPaths = salonService.addImagesToSalon(id, files);
 
-        if (success) {
-            return ResponseEntity.ok("Slike uspješno dodane!");
+        if (!savedPaths.isEmpty()) {
+            return ResponseEntity.ok(savedPaths);
         }
         return ResponseEntity.badRequest().body("Greška pri dodavanju slika.");
     }
 
-    // ✅ Dohvati sve slike salona
-    @GetMapping("/{id}/images")
-    public ResponseEntity<List<Map<String, String>>> getSalonImages(@PathVariable Long id) {
-        Optional<Salon> salonOptional = salonService.getSalonById(id);
-
-        if (salonOptional.isPresent()) {
-            Salon salon = salonOptional.get();
-
-            if (salon.getImages() != null && !salon.getImages().isEmpty()) {
-                List<Map<String, String>> imageList = new ArrayList<>();
-
-                for (int i = 0; i < salon.getImages().size(); i++) {
-                    Map<String, String> imageMap = new HashMap<>();
-                    imageMap.put("imageData", Base64.getEncoder().encodeToString(salon.getImages().get(i)));
-                    imageMap.put("contentType", salon.getImageTypes().get(i));
-                    imageList.add(imageMap);
-                }
-
-                return ResponseEntity.ok(imageList);
-            }
-        }
-
-        return ResponseEntity.notFound().build();
+    // ✅ Dohvati listu path-ova slika salona
+    @GetMapping("/{id}/image-paths")
+    public ResponseEntity<List<String>> getSalonImagePaths(@PathVariable Long id) {
+        List<String> paths = salonService.getSalonImagePaths(id);
+        return ResponseEntity.ok(paths);
     }
 
-    // Dohvati jednu sliku salona
-    @GetMapping("/{id}/images/{imageIndex}")
-    public ResponseEntity<byte[]> getSalonImage(@PathVariable Long id, @PathVariable int imageIndex) {
-        Optional<Salon> salonOptional = salonService.getSalonById(id);
-
-        if (salonOptional.isPresent()) {
-            Salon salon = salonOptional.get();
-
-            if (salon.getImages() != null && imageIndex < salon.getImages().size()) {
-                byte[] imageBytes = salon.getImages().get(imageIndex);
-                String contentType = salon.getImageTypes().get(imageIndex);
-
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.parseMediaType(contentType));
-
-                return new ResponseEntity<>(imageBytes, headers, HttpStatus.OK);
-            }
-        }
-
-        return ResponseEntity.notFound().build();
-    }
-
-    // ✅ Brisanje slike iz salona
+    // ✅ Brisanje slike iz salona po indexu
     @DeleteMapping("/{salonId}/images/{imageIndex}")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<String> deleteSalonImage(@PathVariable Long salonId, @PathVariable int imageIndex) {
@@ -279,15 +219,15 @@ public class SalonController {
         return ResponseEntity.badRequest().body("Greška pri brisanju slike.");
     }
 
-    // ✅ Ažuriranje slike u salonu
+    // ✅ Ažuriranje slike u salonu po indexu
     @PutMapping("/{salonId}/images/{imageIndex}")
     @PreAuthorize("hasAnyRole('OWNER', 'ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<String> updateSalonImage(@PathVariable Long salonId, @PathVariable int imageIndex,
             @RequestParam("file") MultipartFile file) {
-        boolean success = salonService.updateSalonImage(salonId, imageIndex, file);
+        String newPath = salonService.updateSalonImage(salonId, imageIndex, file);
 
-        if (success) {
-            return ResponseEntity.ok("Slika uspješno ažurirana!");
+        if (newPath != null) {
+            return ResponseEntity.ok(newPath);
         }
         return ResponseEntity.badRequest().body("Greška pri ažuriranju slike.");
     }
@@ -295,27 +235,23 @@ public class SalonController {
     @GetMapping("/owner")
     @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<?> getSalonsByOwner() {
-
-        // ✅ Umjesto @AuthenticationPrincipal, koristimo SecurityContextHolder
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         if (authentication == null || !authentication.isAuthenticated()
                 || !(authentication.getPrincipal() instanceof String)) {
-            System.out.println("❌ Autentifikacija nije uspjela! authentication = " + authentication);
+            System.out.println("❌ Autentifikacija nije uspjela!");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Neuspješna autentifikacija.");
         }
 
-        String username = (String) authentication.getPrincipal(); // Dohvati username
+        String username = (String) authentication.getPrincipal();
         System.out.println("🔍 Autentifikovani korisnik: " + username);
 
-        // ✅ Dohvati salone na osnovu username-a vlasnika
         List<Salon> salons = salonService.getSalonsByOwnerUsername(username);
 
         if (salons.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Salon nije pronađen za ovog vlasnika.");
         }
 
-        // ✅ Kreiranje liste sa ID-jem i imenom salona
         List<Map<String, Object>> salonList = new ArrayList<>();
         for (Salon salon : salons) {
             Map<String, Object> salonMap = new HashMap<>();

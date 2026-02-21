@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,12 +21,16 @@ import static org.mockito.Mockito.*;
     testCreateUserDuplicateUsername: Provjerava da li aplikacija pravilno hendluje duplicirano korisničko ime.
     testUpdateUserSuccess: Testira uspješno ažuriranje korisnika.
     testUpdateUserNotFound: Provjerava ponašanje kada korisnik za ažuriranje ne postoji u bazi.
-    testVerifyPassword: Osigurava da se fino enktiptuje pw
+    testVerifyPassword: Osigurava da se fino enkriptuje pw
  */
 class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    // Mora biti mockan jer ga UserService konstruktor zahtjeva
+    @Mock
+    private CalendarService calendarService;
 
     @InjectMocks
     private UserService userService;
@@ -38,9 +43,14 @@ class UserServiceTest {
     @Test
     void testCreateUserSuccess() {
         LocalDate date = LocalDate.of(1999, 8, 22);
-        User user = new User("Amar", "Mujanović", "mujke333@gmail.com","amko333", "amkomujan3377", "male", "+38761224366", date );
+        User user = new User("Amar", "Mujanović", "mujke333@gmail.com", "amko333", "amkomujan3377",
+                "male", "+38761224366", date);
 
-        when(userRepository.findByUsername(user.getUsername())).thenReturn(null);
+        // findByUsername vraća Optional, ne null — ispravno mockujemo sa
+        // Optional.empty()
+        when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.empty());
+        // Potrebno da provjera duplikata emaila ne baci NPE
+        when(userRepository.findAll()).thenReturn(List.of());
         when(userRepository.save(any(User.class))).thenReturn(user);
 
         User createdUser = userService.createUser(user);
@@ -53,7 +63,8 @@ class UserServiceTest {
     @Test
     void testCreateUserDuplicateUsername() {
         LocalDate date = LocalDate.of(1999, 8, 22);
-        User user = new User("Amar", "Mujanović", "mujke333@gmail.com","amko333", "amkomujan3377", "male", "+38761224366", date );
+        User user = new User("Amar", "Mujanović", "mujke333@gmail.com", "amko333", "amkomujan3377",
+                "male", "+38761224366", date);
         when(userRepository.findByUsername(user.getUsername())).thenReturn(Optional.of(user));
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> userService.createUser(user));
@@ -65,8 +76,10 @@ class UserServiceTest {
     @Test
     void testUpdateUserSuccess() {
         LocalDate date = LocalDate.of(1999, 8, 22);
-        User existingUser =  new User("Amar", "Mujanović", "mujke333@gmail.com","amko333", "amkomujan3377", "male", "+38761224366", date );
-        User updatedUser = new User("Amar", "Mujanović", "mujke333@gmail.com","amko333", "novipvpw33", "male", "+38761224366", date );
+        User existingUser = new User("Amar", "Mujanović", "mujke333@gmail.com", "amko333", "amkomujan3377",
+                "male", "+38761224366", date);
+        User updatedUser = new User("Amar", "Mujanović", "mujke333@gmail.com", "amko333", "novipvpw33",
+                "male", "+38761224366", date);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(User.class))).thenReturn(existingUser);
@@ -82,7 +95,8 @@ class UserServiceTest {
     void testUpdateUserNotFound() {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         LocalDate date = LocalDate.of(1999, 8, 22);
-        User updatedUser =  new User("Amar", "Mujanović", "mujke333@gmail.com","amko333", "amkomujan3377", "male", "+38761224366", date );
+        User updatedUser = new User("Amar", "Mujanović", "mujke333@gmail.com", "amko333", "amkomujan3377",
+                "male", "+38761224366", date);
 
         User result = userService.updateUser(1L, updatedUser);
 
@@ -99,6 +113,4 @@ class UserServiceTest {
         boolean isMatched = encoder.matches(rawPassword, encodedPassword);
         assertTrue(isMatched, "Password verification failed");
     }
-
 }
-

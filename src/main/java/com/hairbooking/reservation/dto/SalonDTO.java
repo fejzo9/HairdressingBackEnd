@@ -14,6 +14,7 @@ public class SalonDTO {
     private String phoneNumber;
     private String email;
     private List<String> employeeNames;
+    private List<String> imagePaths;
 
     private Long ownerId;
     private String ownerFirstName;
@@ -25,27 +26,8 @@ public class SalonDTO {
     private Double latitude;
     private Double longitude;
 
-    public SalonDTO(Long id, String name, String address, String phoneNumber, String email, List<String> employeeNames,
-            Long ownerId, String ownerFirstName, String ownerLastName, String ownerBirthDate,
-            String ownerEmail, String ownerPhoneNumber, String ownerUsername, Double latitude, Double longitude) {
-        this.id = id;
-        this.name = name;
-        this.address = address;
-        this.phoneNumber = phoneNumber;
-        this.email = email;
-        this.employeeNames = employeeNames;
-        this.ownerId = ownerId;
-        this.ownerFirstName = ownerFirstName;
-        this.ownerLastName = ownerLastName;
-        this.ownerBirthDate = ownerBirthDate;
-        this.ownerEmail = ownerEmail;
-        this.ownerPhoneNumber = ownerPhoneNumber;
-        this.ownerUsername = ownerUsername;
-        this.latitude = latitude;
-        this.longitude = longitude;
-    }
-
     public SalonDTO(Salon salon) {
+        this.id = salon.getId();
         this.name = salon.getName();
         this.address = salon.getAddress();
         this.phoneNumber = salon.getPhoneNumber();
@@ -53,10 +35,11 @@ public class SalonDTO {
         this.employeeNames = salon.getEmployees() != null
                 ? salon.getEmployees().stream().map(User::getUsername).collect(Collectors.toList())
                 : List.of();
+        this.imagePaths = salon.getImagePaths() != null ? salon.getImagePaths() : List.of();
         this.latitude = salon.getLatitude();
         this.longitude = salon.getLongitude();
 
-        if (Hibernate.isInitialized(salon.getOwner())) { // ✅ Provjera da li je učitan
+        if (Hibernate.isInitialized(salon.getOwner())) {
             User owner = salon.getOwner();
             this.ownerId = owner.getId();
             this.ownerFirstName = owner.getFirstName();
@@ -123,6 +106,14 @@ public class SalonDTO {
 
     public void setEmployeeNames(List<String> employeeNames) {
         this.employeeNames = employeeNames;
+    }
+
+    public List<String> getImagePaths() {
+        return imagePaths;
+    }
+
+    public void setImagePaths(List<String> imagePaths) {
+        this.imagePaths = imagePaths;
     }
 
     public Long getOwnerId() {
