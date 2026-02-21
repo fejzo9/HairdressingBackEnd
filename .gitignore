@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Uploads - slike korisnika i salona (ne čuvati u git) ###
+uploads/
