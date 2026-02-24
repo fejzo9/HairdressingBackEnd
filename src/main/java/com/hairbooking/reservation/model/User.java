@@ -45,7 +45,7 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
-    @Lob  // 👈 Dodaje polje u bazi koje će čuvati binarne podatke (slike)
+    @Lob
     @Basic(fetch = FetchType.LAZY)
     @JsonIgnore
     private byte[] profilePicture;
@@ -69,7 +69,9 @@ public class User {
     public User() {
     }
 
-    public User(String firstName, String lastName, String email, String username, String password, String gender, String phoneNumber, LocalDate birthDate, Role role, String profilePictureType, byte[] profilePicture, Calendar calendar) {
+    public User(String firstName, String lastName, String email, String username, String password, String gender,
+            String phoneNumber, LocalDate birthDate, Role role, String profilePictureType, byte[] profilePicture,
+            Calendar calendar) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -84,18 +86,18 @@ public class User {
         this.calendar = calendar;
     }
 
-    public User(String firstName, String lastName, String email){
+    public User(String firstName, String lastName, String email) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
     }
 
-    public User(String username, String password){
+    public User(String username, String password) {
         this.username = username;
         this.setPassword(password);
     }
 
-    public User(String username, String password, String email, Role role){
+    public User(String username, String password, String email, Role role) {
         this.username = username;
         this.password = password;
         this.email = email;
@@ -110,7 +112,8 @@ public class User {
         this.setPassword(password);
     }
 
-    public User(String firstName, String lastName, String email, String username, String password, String gender, String phoneNumber, LocalDate birthDate) {
+    public User(String firstName, String lastName, String email, String username, String password, String gender,
+            String phoneNumber, LocalDate birthDate) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -121,7 +124,8 @@ public class User {
         this.birthDate = birthDate;
     }
 
-    public User(String firstName, String lastName, String email, String username, String password, String gender, String phoneNumber, LocalDate birthDate, Role role) {
+    public User(String firstName, String lastName, String email, String username, String password, String gender,
+            String phoneNumber, LocalDate birthDate, Role role) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
@@ -133,16 +137,16 @@ public class User {
         this.role = role;
     }
 
-    public User(String username, byte[] profilePicture){
+    public User(String username, byte[] profilePicture) {
         this.username = username;
         this.profilePicture = profilePicture;
     }
 
-    public User(byte[] profilePicture){
+    public User(byte[] profilePicture) {
         this.profilePicture = profilePicture;
     }
 
-    public User(byte[] profilePicture, String profilePictureType){
+    public User(byte[] profilePicture, String profilePictureType) {
         this.profilePicture = profilePicture;
         this.profilePictureType = profilePictureType;
     }
@@ -192,7 +196,9 @@ public class User {
         return password;
     }
 
-    public void setPassword(String password) { this.password = password; }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
     public String getGender() {
         return gender;
@@ -218,13 +224,21 @@ public class User {
         this.birthDate = birthDate;
     }
 
-    public Role getRole() { return role; }
+    public Role getRole() {
+        return role;
+    }
 
-    public void setRole(Role role) { this.role = role; }
+    public void setRole(Role role) {
+        this.role = role;
+    }
 
-    public byte[] getProfilePicture() { return profilePicture; }
+    public byte[] getProfilePicture() {
+        return profilePicture;
+    }
 
-    public void setProfilePicture(byte[] profilePicture) { this.profilePicture = profilePicture; }
+    public void setProfilePicture(byte[] profilePicture) {
+        this.profilePicture = profilePicture;
+    }
 
     public String getProfilePictureType() {
         return profilePictureType;
@@ -268,8 +282,10 @@ public class User {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
         User user = (User) obj;
         return id != null && id.equals(user.id);
     }
