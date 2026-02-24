@@ -9,15 +9,16 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private final String frontendUrl;
+    private final String fromEmail;
 
-    @Value("${app.frontend.url:http://localhost:5173}")
-    private String frontendUrl;
-
-    @Value("${spring.mail.username:noreply@hairbooking.com}")
-    private String fromEmail;
-
-    public EmailService(JavaMailSender mailSender) {
+    public EmailService(
+            JavaMailSender mailSender,
+            @Value("${app.frontend.url:http://localhost:5173}") String frontendUrl,
+            @Value("${spring.mail.username:fejzo999@gmail.com}") String fromEmail) {
         this.mailSender = mailSender;
+        this.frontendUrl = (frontendUrl != null && !frontendUrl.isBlank()) ? frontendUrl : "http://localhost:5173";
+        this.fromEmail = (fromEmail != null && !fromEmail.isBlank()) ? fromEmail : "fejzo999@gmail.com";
     }
 
     public void sendVerificationEmail(String to, String token) {
