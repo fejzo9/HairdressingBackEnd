@@ -35,3 +35,5 @@ out/
 
 ### VS Code ###
 .vscode/
+src/main/java/com/hairbooking/reservation/config/DataInitializer.java
+migrate_remove_binary_images.sql
